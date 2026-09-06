@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { Container } from "@/components/Container";
+import { Link } from "@/components/atoms/Link";
+import { Container } from "@/components/atoms/Container";
 
 export function Header() {
   return (
