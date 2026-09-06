@@ -7,13 +7,20 @@ import { Button } from "@/components/atoms/Button";
 import { TextField } from "@/components/atoms/TextField";
 import { PasswordField } from "@/components/molecules/PasswordField";
 import { RequirementList } from "@/components/molecules/RequirementList";
+import { PlanSelection } from "@/components/organisms/PlanSelection";
+import type { BillingCycle, Plan } from "@/lib/api/plans";
 import {
   passwordRules,
   registrationSchema,
   type RegistrationValues,
 } from "@/lib/registration-schema";
 
-export function RegistrationForm() {
+export function RegistrationForm({ plans }: { plans: Plan[] }) {
+  const recommendedPlan = plans.find((plan) => plan.recommended) ?? plans[0];
+  const [selectedPlanId, setSelectedPlanId] = useState(
+    recommendedPlan?.id ?? "",
+  );
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [validated, setValidated] = useState(false);
   const {
     register,
@@ -28,12 +35,19 @@ export function RegistrationForm() {
   const password = useWatch({ control, name: "password" });
 
   return (
-    <div>
+    <div className="space-y-10">
+      <PlanSelection
+        plans={plans}
+        selectedPlanId={selectedPlanId}
+        billingCycle={billingCycle}
+        onPlanChange={setSelectedPlanId}
+        onBillingCycleChange={setBillingCycle}
+      />
       <form
         noValidate
         onChange={() => setValidated(false)}
         onSubmit={handleSubmit(() => setValidated(true))}
-        className="space-y-5"
+        className="max-w-2xl space-y-5 border-t border-neutral-200 pt-8"
       >
         <TextField
           id="register-name"

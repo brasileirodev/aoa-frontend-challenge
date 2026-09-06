@@ -48,7 +48,7 @@ const architecture = {
         if (n.callee.name === "require" && n.arguments[0])
           check(n, n.arguments[0].value);
       },
-      TSImportType: (n) => check(n, n.argument?.value),
+      TSImportType: (n) => check(n, n.source.value),
     };
   },
 };

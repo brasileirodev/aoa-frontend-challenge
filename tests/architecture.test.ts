@@ -57,6 +57,25 @@ it("enforces vendor imports, reexports and layer direction", async () => {
       'import {Button} from "@/components/atoms/Button";',
       false,
     ],
+    [
+      "components/atoms/Example.tsx",
+      'export * from "@/components/organisms/Header";',
+      true,
+    ],
+    [
+      "app/page.tsx",
+      'async function load() { return import("@mui/material/Button"); }',
+      true,
+    ],
+    ["app/page.tsx", 'const Button = require("@mui/material/Button");', true],
+    ["app/page.tsx", 'const Button = maybe("@mui/material/Button");', false],
+    ["app/page.tsx", "require();", false],
+    [
+      "app/page.tsx",
+      'async function load() { const moduleName = "@mui/material/Button"; return import(moduleName); }',
+      false,
+    ],
+    ["app/types.ts", 'type Button = import("@mui/material/Button");', true],
   ] as const) {
     const [result] = await lint.lintText(code, { filePath: file });
     expect(

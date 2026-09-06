@@ -12,7 +12,13 @@ const eslintConfig = defineConfig([
     plugins: { architecture: { rules: { boundaries: architecture } } },
     rules: { "architecture/boundaries": "error" },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "coverage/**",
+    "next-env.d.ts",
+  ]),
 ]);
 
 export default eslintConfig;
