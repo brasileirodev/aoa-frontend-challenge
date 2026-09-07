@@ -4,16 +4,22 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/atoms/Button";
-import { TextField } from "@/components/atoms/TextField";
-import { PasswordField } from "@/components/molecules/PasswordField";
-import { RequirementList } from "@/components/molecules/RequirementList";
+import { Notice } from "@/components/atoms/Notice";
+import { Stepper } from "@/components/atoms/Stepper";
+import { AccountDetailsStep } from "@/components/organisms/AccountDetailsStep";
 import { PlanSelection } from "@/components/organisms/PlanSelection";
 import type { BillingCycle, Plan } from "@/lib/api/plans";
 import {
-  passwordRules,
   registrationSchema,
   type RegistrationValues,
 } from "@/lib/registration-schema";
+
+const steps = [
+  { label: "Plan selection" },
+  { label: "Company details" },
+  { label: "Payment" },
+  { label: "Review" },
+];
 
 export function RegistrationForm({ plans }: { plans: Plan[] }) {
   const recommendedPlan = plans.find((plan) => plan.recommended) ?? plans[0];
@@ -21,108 +27,160 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
     recommendedPlan?.id ?? "",
   );
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
-  const [validated, setValidated] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const [accountDetailsValid, setAccountDetailsValid] = useState(false);
+  const [paymentSuccessful, setPaymentSuccessful] = useState(false);
   const {
     register,
-    handleSubmit,
     control,
-    formState: { errors, isSubmitting },
+    trigger,
+    clearErrors,
+    formState: { errors },
   } = useForm<RegistrationValues>({
     resolver: zodResolver(registrationSchema),
     mode: "onTouched",
     defaultValues: { name: "", company: "", email: "", password: "" },
   });
   const password = useWatch({ control, name: "password" });
+  const canContinueFromPlan = Boolean(selectedPlanId);
+  const completedSteps = [
+    activeStep > 0 && canContinueFromPlan ? 0 : null,
+    activeStep > 1 && accountDetailsValid ? 1 : null,
+    paymentSuccessful ? 2 : null,
+  ].filter((step): step is number => step !== null);
+
+  function goBack() {
+    clearErrors();
+    setActiveStep((currentStep) => {
+      const previousStep = currentStep - 1;
+
+      return Math.max(previousStep, 0);
+    });
+  }
+
+  async function continueFromAccountDetails() {
+    const valid = await trigger(undefined, { shouldFocus: true });
+
+    setAccountDetailsValid(valid);
+    if (valid) {
+      setActiveStep(2);
+    }
+  }
+
+  function goNext() {
+    clearErrors();
+    if (activeStep === 0 && canContinueFromPlan) setActiveStep(1);
+    if (activeStep === 2 && paymentSuccessful) setActiveStep(3);
+  }
 
   return (
     <div className="space-y-10">
-      <PlanSelection
-        plans={plans}
-        selectedPlanId={selectedPlanId}
-        billingCycle={billingCycle}
-        onPlanChange={setSelectedPlanId}
-        onBillingCycleChange={setBillingCycle}
+      <Stepper
+        steps={steps}
+        activeStep={activeStep}
+        completedSteps={completedSteps}
       />
-      <form
-        noValidate
-        onChange={() => setValidated(false)}
-        onSubmit={handleSubmit(() => setValidated(true))}
-        className="max-w-2xl space-y-5 border-t border-neutral-200 pt-8"
-      >
-        <TextField
-          id="register-name"
-          label="Full name"
-          autoComplete="name"
-          placeholder="Alex Morgan"
-          required
-          maxLength={100}
-          error={errors.name?.message}
-          {...register("name")}
-        />
-        <TextField
-          id="register-company"
-          label="Company name"
-          autoComplete="organization"
-          placeholder="Your company"
-          required
-          maxLength={120}
-          error={errors.company?.message}
-          {...register("company")}
-        />
-        <TextField
-          id="register-email"
-          label="Work email"
-          type="email"
-          autoComplete="email"
-          autoCapitalize="none"
-          spellCheck={false}
-          placeholder="alex@company.com"
-          required
-          maxLength={254}
-          error={errors.email?.message}
-          {...register("email")}
-        />
-        <div>
-          <PasswordField
-            id="register-password"
-            label="Password"
-            autoComplete="new-password"
-            placeholder="Create a strong password"
-            required
-            maxLength={128}
-            aria-describedby="password-requirements"
-            error={errors.password?.message}
-            {...register("password")}
+
+      {activeStep === 0 && (
+        <div className="space-y-8">
+          <PlanSelection
+            plans={plans}
+            selectedPlanId={selectedPlanId}
+            billingCycle={billingCycle}
+            onPlanChange={setSelectedPlanId}
+            onBillingCycleChange={setBillingCycle}
           />
-          <RequirementList
-            id="password-requirements"
-            items={passwordRules.map((rule) => ({
-              label: rule.label,
-              met: rule.test(password),
-            }))}
-          />
+          <Button
+            type="button"
+            size="lg"
+            disabled={!canContinueFromPlan}
+            onClick={goNext}
+          >
+            Continue to company details
+          </Button>
         </div>
-        <Button
-          type="submit"
-          size="lg"
-          disabled={isSubmitting}
-          className="mt-2 w-full gap-3 disabled:opacity-60"
+      )}
+
+      {activeStep === 1 && (
+        <form
+          noValidate
+          onChange={() => setAccountDetailsValid(false)}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void continueFromAccountDetails();
+          }}
+          className="space-y-8 border-t border-neutral-200 pt-8"
         >
-          {isSubmitting ? "Checking details…" : "Continue"}
-          <span aria-hidden="true">→</span>
-        </Button>
-        <div role="status" aria-live="polite">
-          {validated && (
-            <p className="rounded-lg border border-brand-200 bg-brand-50 p-4 text-sm leading-6 text-brand-900">
-              Your details look good. This preview validates the form only; no
-              account has been created.
-            </p>
-          )}
+          <AccountDetailsStep
+            errors={errors}
+            password={password}
+            register={register}
+          />
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+            <Button type="button" variant="secondary" onClick={goBack}>
+              Back to plan
+            </Button>
+            <Button
+              type="submit"
+              size="lg"
+              className="gap-3 disabled:opacity-60"
+            >
+              Continue to payment
+              <span aria-hidden="true">→</span>
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {activeStep === 2 && (
+        <div className="space-y-6 border-t border-neutral-200 pt-8">
+          <Notice tone={paymentSuccessful ? "success" : "info"}>
+            {paymentSuccessful
+              ? "Payment marked as successful for this frontend preview."
+              : "Payment details will be implemented in US-04. This step is prepared to block review until payment succeeds."}
+          </Notice>
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={goBack}
+              disabled={paymentSuccessful}
+            >
+              Back to company details
+            </Button>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setPaymentSuccessful(true)}
+                disabled={paymentSuccessful}
+              >
+                Mark payment as successful
+              </Button>
+              <Button
+                type="button"
+                size="lg"
+                disabled={!paymentSuccessful}
+                onClick={goNext}
+              >
+                Continue to review
+              </Button>
+            </div>
+          </div>
         </div>
-        <p className="text-center text-xs leading-5 text-neutral-500">
-          Registration preview. Your details are not sent or saved.
-        </p>
-      </form>
+      )}
+
+      {activeStep === 3 && (
+        <div className="space-y-6 border-t border-neutral-200 pt-8">
+          <Notice tone="info">
+            Review and success confirmation will be implemented in US-05. The
+            flow has reached this step because payment is marked as successful.
+          </Notice>
+          <Button type="button" variant="secondary" onClick={goBack}>
+            Back to payment
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

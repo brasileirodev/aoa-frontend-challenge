@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { RegistrationForm } from "@/components/organisms/RegistrationForm";
 import { getPlans, type Plan } from "@/lib/api/plans";
@@ -42,6 +42,21 @@ const testPlans: Plan[] = [
   },
 ];
 
+async function goToAccountDetails(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(
+    screen.getByRole("button", { name: "Continue to company details" }),
+  );
+}
+
+async function fillValidAccountDetails(
+  user: ReturnType<typeof userEvent.setup>,
+) {
+  await user.type(screen.getByLabelText(/Full name/), valid.name);
+  await user.type(screen.getByLabelText(/Company name/), valid.company);
+  await user.type(screen.getByLabelText(/Work email/), valid.email);
+  await user.type(screen.getByLabelText(/^Password/), valid.password);
+}
+
 describe("registration contract", () => {
   it("loads plan data through the API layer", async () => {
     const plans = await getPlans();
@@ -82,7 +97,11 @@ describe("registration contract", () => {
     const user = userEvent.setup();
     render(<RegistrationForm plans={testPlans} />);
 
-    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await goToAccountDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Continue to payment" }),
+    );
+
     expect(await screen.findByText("Enter your full name.")).toBeVisible();
     expect(screen.getByLabelText(/Full name/)).toHaveFocus();
     expect(screen.getByLabelText(/Work email/)).toHaveAttribute(
@@ -93,27 +112,47 @@ describe("registration contract", () => {
       "Enter a valid email address.",
     );
   });
+
+  it("clears account detail errors when moving between steps", async () => {
+    const user = userEvent.setup();
+    render(<RegistrationForm plans={testPlans} />);
+
+    await goToAccountDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Continue to payment" }),
+    );
+    expect(await screen.findByText("Enter your full name.")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Back to plan" }));
+    await goToAccountDetails(user);
+
+    expect(screen.queryByText("Enter your full name.")).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Full name/)).not.toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+  });
+
   it("accepts valid data, toggles password and clears success after an edit", async () => {
     const user = userEvent.setup();
     render(<RegistrationForm plans={testPlans} />);
-    await user.type(screen.getByLabelText(/Full name/), valid.name);
-    await user.type(screen.getByLabelText(/Company name/), valid.company);
-    await user.type(screen.getByLabelText(/Work email/), valid.email);
+
+    await goToAccountDetails(user);
+    await fillValidAccountDetails(user);
+
     const password = screen.getByLabelText(/^Password/);
-    await user.type(password, valid.password);
     expect(password).toHaveAttribute("type", "password");
     await user.click(screen.getByRole("button", { name: "Show password" }));
     expect(password).toHaveAttribute("type", "text");
     await user.click(screen.getByRole("button", { name: "Hide password" }));
     expect(password).toHaveAttribute("type", "password");
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    expect(await screen.findByText(/Your details look good/)).toBeVisible();
-    await user.type(screen.getByLabelText(/Full name/), "a");
-    await waitFor(() =>
-      expect(
-        screen.queryByText(/Your details look good/),
-      ).not.toBeInTheDocument(),
+    await user.click(
+      screen.getByRole("button", { name: "Continue to payment" }),
     );
+
+    expect(
+      screen.getByText(/Payment details will be implemented/),
+    ).toBeVisible();
   });
 
   it("renders plans, highlights the recommended plan and selects one plan", async () => {
@@ -167,6 +206,9 @@ describe("registration contract", () => {
 
     expect(screen.getByText("Choose your plan")).toBeVisible();
     expect(screen.queryByRole("radio")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Continue to company details" }),
+    ).toBeDisabled();
   });
 
   it("updates displayed pricing when the billing cycle changes", async () => {
@@ -184,5 +226,57 @@ describe("registration contract", () => {
       "aria-checked",
       "true",
     );
+  });
+
+  it("shows the four-step flow and preserves account details before payment succeeds", async () => {
+    const user = userEvent.setup();
+    render(<RegistrationForm plans={testPlans} />);
+
+    for (const step of [
+      "Plan selection",
+      "Company details",
+      "Payment",
+      "Review",
+    ]) {
+      expect(screen.getByText(step)).toBeVisible();
+    }
+
+    await goToAccountDetails(user);
+    await fillValidAccountDetails(user);
+    await user.click(screen.getByRole("button", { name: "Back to plan" }));
+    await goToAccountDetails(user);
+
+    expect(screen.getByLabelText(/Full name/)).toHaveValue(valid.name);
+    expect(screen.getByLabelText(/Company name/)).toHaveValue(valid.company);
+    expect(screen.getByLabelText(/Work email/)).toHaveValue(valid.email);
+  });
+
+  it("blocks review until payment succeeds and locks earlier steps after payment", async () => {
+    const user = userEvent.setup();
+    render(<RegistrationForm plans={testPlans} />);
+
+    await goToAccountDetails(user);
+    await fillValidAccountDetails(user);
+    await user.click(
+      screen.getByRole("button", { name: "Continue to payment" }),
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Continue to review" }),
+    ).toBeDisabled();
+    await user.click(
+      screen.getByRole("button", { name: "Mark payment as successful" }),
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Back to company details" }),
+    ).toBeDisabled();
+    await user.click(
+      screen.getByRole("button", { name: "Continue to review" }),
+    );
+
+    expect(screen.getByText(/Review and success confirmation/)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Back to payment" }));
+    expect(screen.getByText(/Payment marked as successful/)).toBeVisible();
   });
 });
