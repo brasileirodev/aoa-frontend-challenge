@@ -264,7 +264,7 @@ describe("payment UI", () => {
     const store = useCheckoutStore.getState();
 
     store.changePaymentMethod(method);
-    if (paymentSuccessful) store.confirmPayment();
+    if (paymentSuccessful) store.confirmPayment({ method: "pix" });
   }
 
   it("validates and processes the simulated card form", async () => {

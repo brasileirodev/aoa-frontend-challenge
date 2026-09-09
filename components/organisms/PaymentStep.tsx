@@ -16,10 +16,12 @@ import {
 import {
   cardPaymentSchema,
   getCardFeedback,
+  onlyDigits,
   paymentMethodOptions,
   type CardPaymentInput,
   type PaymentMethod,
 } from "@/lib/payment";
+import type { PaymentSummary } from "@/lib/stores/checkout-store";
 import { useCheckoutStore } from "@/lib/stores/checkout-store";
 
 type CardFields = Omit<CardPaymentInput, "method">;
@@ -87,7 +89,7 @@ export function PaymentStep({
     const response = await processCardPayment(cardPayment);
     setMessage(response.message);
 
-    if (response.success) confirmPayment();
+    if (response.success) confirmPayment(createCardPaymentSummary(cardPayment));
   }
 
   return (
@@ -126,4 +128,18 @@ export function PaymentStep({
       )}
     </div>
   );
+}
+
+function createCardPaymentSummary(
+  cardPayment: CardPaymentInput,
+): PaymentSummary {
+  const feedback = getCardFeedback(cardPayment.cardNumber);
+  const lastFourDigits = onlyDigits(cardPayment.cardNumber).slice(-4);
+
+  return {
+    method: "card",
+    brand: feedback.brand,
+    bank: feedback.bank,
+    maskedNumber: "**** " + lastFourDigits,
+  };
 }

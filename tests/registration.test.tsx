@@ -2,6 +2,7 @@ import { afterEach, describe, it, expect, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { RegistrationForm } from "@/components/organisms/RegistrationForm";
+import { ReviewStep } from "@/components/organisms/ReviewStep";
 import { getPlans, type Plan } from "@/lib/api/plans";
 import { registrationSchema } from "@/lib/registration-schema";
 import { useCheckoutStore } from "@/lib/stores/checkout-store";
@@ -283,6 +284,12 @@ describe("registration contract", () => {
       "aria-checked",
       "true",
     );
+
+    await goToAccountDetails(user);
+
+    expect(screen.getByLabelText(/Full name/)).toHaveValue("");
+    expect(screen.getByLabelText(/Company name/)).toHaveValue("");
+    expect(screen.getByLabelText(/Work email/)).toHaveValue("");
   });
 
   it("shows the four-step flow and preserves account details before payment succeeds", async () => {
@@ -325,11 +332,55 @@ describe("registration contract", () => {
 
     await fillValidCardPayment(user);
 
+    expect(await screen.findByText("Subscription confirmed")).toBeVisible();
+    expect(screen.getByText("Growth")).toBeVisible();
+    expect(screen.getByText("monthly")).toBeVisible();
+    expect(screen.getByText("$79/month")).toBeVisible();
+    expect(screen.getByText(valid.name)).toBeVisible();
+    expect(screen.getByText(valid.company)).toBeVisible();
+    expect(screen.getByText(valid.email)).toBeVisible();
     expect(
-      await screen.findByText(/Review and success confirmation/),
+      screen.getByText("Visa - Meridian Demo Bank - **** 1111"),
     ).toBeVisible();
+    expect(screen.queryByText("123")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Back to payment" }),
     ).not.toBeInTheDocument();
+
+    expect(
+      screen.queryByRole("button", { name: "Confirm checkout" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(/Reference MER-/)).toBeVisible();
+    expect(screen.getByText("Start over")).toBeVisible();
+    expect(screen.getByText("Return home")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Start over" }));
+
+    expect(screen.getByText("Choose your plan")).toBeVisible();
+    expect(screen.getByRole("radio", { name: /Growth/ })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
+  it("shows review fallback when required checkout data is missing", () => {
+    render(<ReviewStep plans={testPlans} onStartOver={vi.fn()} />);
+
+    expect(
+      screen.getByText(
+        "Review data is not available. Start over to create a new checkout.",
+      ),
+    ).toBeVisible();
+  });
+
+  it("shows Pix payment summary in review", () => {
+    const store = useCheckoutStore.getState();
+    store.initializeCheckout("growth");
+    store.saveAccountDetails(valid);
+    store.confirmPayment({ method: "pix" });
+
+    render(<ReviewStep plans={testPlans} onStartOver={vi.fn()} />);
+
+    expect(screen.getByText("Pix payment confirmed")).toBeVisible();
   });
 });

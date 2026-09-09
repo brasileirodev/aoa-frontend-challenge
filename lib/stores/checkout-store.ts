@@ -1,7 +1,18 @@
 import { create } from "zustand";
 import type { BillingCycle } from "@/lib/api/plans";
-import type { PaymentMethod } from "@/lib/payment";
+import type { CardBrand, PaymentMethod } from "@/lib/payment";
 import type { RegistrationValues } from "@/lib/registration-schema";
+
+export type PaymentSummary =
+  | {
+      method: "card";
+      brand: CardBrand | "Unknown brand";
+      bank: string;
+      maskedNumber: string;
+    }
+  | {
+      method: "pix";
+    };
 
 type CheckoutState = {
   activeStep: number;
@@ -10,7 +21,9 @@ type CheckoutState = {
   accountDetails: RegistrationValues | null;
   accountDetailsCompleted: boolean;
   paymentMethod: PaymentMethod;
+  paymentSummary: PaymentSummary | null;
   paymentSuccessful: boolean;
+  referenceCode: string;
 };
 
 type CheckoutActions = {
@@ -22,7 +35,7 @@ type CheckoutActions = {
   markAccountDetailsAsEditing: () => void;
   saveAccountDetails: (accountDetails: RegistrationValues) => void;
   changePaymentMethod: (paymentMethod: PaymentMethod) => void;
-  confirmPayment: () => void;
+  confirmPayment: (paymentSummary: PaymentSummary) => void;
   resetCheckout: () => void;
 };
 
@@ -35,8 +48,14 @@ export const initialCheckoutState: CheckoutState = {
   accountDetails: null,
   accountDetailsCompleted: false,
   paymentMethod: "card",
+  paymentSummary: null,
   paymentSuccessful: false,
+  referenceCode: "",
 };
+
+function createReferenceCode() {
+  return "MER-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+}
 
 export const useCheckoutStore = create<CheckoutStore>()((set) => ({
   ...initialCheckoutState,
@@ -51,6 +70,12 @@ export const useCheckoutStore = create<CheckoutStore>()((set) => ({
   saveAccountDetails: (accountDetails) =>
     set({ accountDetails, accountDetailsCompleted: true, activeStep: 2 }),
   changePaymentMethod: (paymentMethod) => set({ paymentMethod }),
-  confirmPayment: () => set({ paymentSuccessful: true, activeStep: 3 }),
+  confirmPayment: (paymentSummary) =>
+    set({
+      paymentSummary,
+      paymentSuccessful: true,
+      activeStep: 3,
+      referenceCode: createReferenceCode(),
+    }),
   resetCheckout: () => set(initialCheckoutState),
 }));

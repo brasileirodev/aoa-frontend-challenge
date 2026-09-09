@@ -12,7 +12,7 @@ implemented, and reviewed in isolation.
 2. `us-02-us-03-registration-flow-and-account-details/us-02-registration-flow-shell.md`
 3. `us-02-us-03-registration-flow-and-account-details/us-03-account-details-step.md`
 4. `us-04-payment-step/us-04-payment-step.md`
-5. `us-05-review-and-success-step.md`
+5. `us-05-review-and-success-step/us-05-review-and-success-step.md`
 6. `us-06-product-and-challenge-documentation.md`
 7. `us-07-quality-and-submission-readiness.md`
 

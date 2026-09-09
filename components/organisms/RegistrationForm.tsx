@@ -4,11 +4,11 @@ import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/atoms/Button";
-import { Notice } from "@/components/atoms/Notice";
 import { Stepper } from "@/components/atoms/Stepper";
 import { AccountDetailsStep } from "@/components/organisms/AccountDetailsStep";
 import { PaymentStep } from "@/components/organisms/PaymentStep";
 import { PlanSelection } from "@/components/organisms/PlanSelection";
+import { ReviewStep } from "@/components/organisms/ReviewStep";
 import type { Plan } from "@/lib/api/plans";
 import {
   registrationSchema,
@@ -25,6 +25,7 @@ const steps = [
 
 export function RegistrationForm({ plans }: { plans: Plan[] }) {
   const recommendedPlan = plans.find((plan) => plan.recommended) ?? plans[0];
+  const recommendedPlanId = recommendedPlan?.id ?? "";
   const activeStep = useCheckoutStore((state) => state.activeStep);
   const selectedPlanId = useCheckoutStore((state) => state.selectedPlanId);
   const accountDetailsCompleted = useCheckoutStore(
@@ -51,6 +52,7 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
     trigger,
     clearErrors,
     getValues,
+    reset,
     formState: { errors },
   } = useForm<RegistrationValues>({
     resolver: zodResolver(registrationSchema),
@@ -59,11 +61,11 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
   });
 
   useEffect(() => {
-    initializeCheckout(recommendedPlan?.id ?? "");
+    initializeCheckout(recommendedPlanId);
     return () => {
       resetCheckout();
     };
-  }, [initializeCheckout, recommendedPlan?.id, resetCheckout]);
+  }, [initializeCheckout, recommendedPlanId, resetCheckout]);
 
   const password = useWatch({ control, name: "password" });
   const canContinueFromPlan = Boolean(selectedPlanId);
@@ -89,6 +91,13 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
   function goToAccountDetails() {
     clearErrors();
     continueFromPlan();
+  }
+
+  function startOverCheckout() {
+    reset();
+    clearErrors();
+    resetCheckout();
+    initializeCheckout(recommendedPlanId);
   }
 
   return (
@@ -166,10 +175,7 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
 
       {activeStep === 3 && (
         <div className="space-y-6 border-t border-neutral-200 pt-8">
-          <Notice tone="info">
-            Review and success confirmation will be implemented in US-05. The
-            flow has reached this step because payment is marked as successful.
-          </Notice>
+          <ReviewStep plans={plans} onStartOver={startOverCheckout} />
         </div>
       )}
     </div>

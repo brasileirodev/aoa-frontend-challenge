@@ -12,11 +12,12 @@ import {
 import type { PaymentMethod } from "@/lib/payment";
 import type { PixPayment } from "@/lib/payment-store";
 import { createQrCodeDataUrl } from "@/lib/qr-code";
+import type { PaymentSummary } from "@/lib/stores/checkout-store";
 
 type UsePixPaymentOptions = {
   method: PaymentMethod;
   paymentSuccessful: boolean;
-  onPaymentSuccess: () => void;
+  onPaymentSuccess: (paymentSummary: PaymentSummary) => void;
   pixCountdownTickMs?: number;
   pixExpirationSeconds?: number;
   paymentStatusPollingMs?: number;
@@ -114,7 +115,7 @@ export function usePixPayment({
 
       if (nextPixPayment.status === "paid") {
         setMessage("Pix payment confirmed in the simulated flow.");
-        onPaymentSuccess();
+        onPaymentSuccess({ method: "pix" });
         return;
       }
 
