@@ -44,6 +44,7 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
   const saveAccountDetails = useCheckoutStore(
     (state) => state.saveAccountDetails,
   );
+  const resetCheckout = useCheckoutStore((state) => state.resetCheckout);
   const {
     register,
     control,
@@ -59,7 +60,10 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
 
   useEffect(() => {
     initializeCheckout(recommendedPlan?.id ?? "");
-  }, [initializeCheckout, recommendedPlan?.id]);
+    return () => {
+      resetCheckout();
+    };
+  }, [initializeCheckout, recommendedPlan?.id, resetCheckout]);
 
   const password = useWatch({ control, name: "password" });
   const canContinueFromPlan = Boolean(selectedPlanId);
