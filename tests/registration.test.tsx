@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { RegistrationForm } from "@/components/organisms/RegistrationForm";
 import { getPlans, type Plan } from "@/lib/api/plans";
 import { registrationSchema } from "@/lib/registration-schema";
+import { useCheckoutStore } from "@/lib/stores/checkout-store";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -112,6 +113,7 @@ async function fillValidCardPayment(user: ReturnType<typeof userEvent.setup>) {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  useCheckoutStore.getState().resetCheckout();
 });
 
 describe("registration contract", () => {

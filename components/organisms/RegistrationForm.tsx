@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/atoms/Button";
@@ -9,12 +9,12 @@ import { Stepper } from "@/components/atoms/Stepper";
 import { AccountDetailsStep } from "@/components/organisms/AccountDetailsStep";
 import { PaymentStep } from "@/components/organisms/PaymentStep";
 import { PlanSelection } from "@/components/organisms/PlanSelection";
-import type { BillingCycle, Plan } from "@/lib/api/plans";
-import type { PaymentMethod } from "@/lib/payment";
+import type { Plan } from "@/lib/api/plans";
 import {
   registrationSchema,
   type RegistrationValues,
 } from "@/lib/registration-schema";
+import { useCheckoutStore } from "@/lib/stores/checkout-store";
 
 const steps = [
   { label: "Plan selection" },
@@ -25,59 +25,66 @@ const steps = [
 
 export function RegistrationForm({ plans }: { plans: Plan[] }) {
   const recommendedPlan = plans.find((plan) => plan.recommended) ?? plans[0];
-  const [selectedPlanId, setSelectedPlanId] = useState(
-    recommendedPlan?.id ?? "",
+  const activeStep = useCheckoutStore((state) => state.activeStep);
+  const selectedPlanId = useCheckoutStore((state) => state.selectedPlanId);
+  const accountDetailsCompleted = useCheckoutStore(
+    (state) => state.accountDetailsCompleted,
   );
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
-  const [activeStep, setActiveStep] = useState(0);
-  const [accountDetailsValid, setAccountDetailsValid] = useState(false);
-  const [paymentSuccessful, setPaymentSuccessful] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
+  const paymentSuccessful = useCheckoutStore(
+    (state) => state.paymentSuccessful,
+  );
+  const initializeCheckout = useCheckoutStore(
+    (state) => state.initializeCheckout,
+  );
+  const continueFromPlan = useCheckoutStore((state) => state.continueFromPlan);
+  const goBack = useCheckoutStore((state) => state.goBack);
+  const markAccountDetailsAsEditing = useCheckoutStore(
+    (state) => state.markAccountDetailsAsEditing,
+  );
+  const saveAccountDetails = useCheckoutStore(
+    (state) => state.saveAccountDetails,
+  );
   const {
     register,
     control,
     trigger,
     clearErrors,
+    getValues,
     formState: { errors },
   } = useForm<RegistrationValues>({
     resolver: zodResolver(registrationSchema),
     mode: "onTouched",
     defaultValues: { name: "", company: "", email: "", password: "" },
   });
+
+  useEffect(() => {
+    initializeCheckout(recommendedPlan?.id ?? "");
+  }, [initializeCheckout, recommendedPlan?.id]);
+
   const password = useWatch({ control, name: "password" });
   const canContinueFromPlan = Boolean(selectedPlanId);
   const completedSteps = [
     activeStep > 0 && canContinueFromPlan ? 0 : null,
-    activeStep > 1 && accountDetailsValid ? 1 : null,
+    activeStep > 1 && accountDetailsCompleted ? 1 : null,
     paymentSuccessful ? 2 : null,
   ].filter((step): step is number => step !== null);
 
-  function goBack() {
+  function goBackToPreviousStep() {
     clearErrors();
-    setActiveStep((currentStep) => {
-      const previousStep = currentStep - 1;
-
-      return Math.max(previousStep, 0);
-    });
+    goBack();
   }
 
   async function continueFromAccountDetails() {
     const valid = await trigger(undefined, { shouldFocus: true });
 
-    setAccountDetailsValid(valid);
     if (valid) {
-      setActiveStep(2);
+      saveAccountDetails(getValues());
     }
   }
 
-  function goNext() {
+  function goToAccountDetails() {
     clearErrors();
-    setActiveStep(1);
-  }
-
-  function confirmPayment() {
-    setPaymentSuccessful(true);
-    setActiveStep(3);
+    continueFromPlan();
   }
 
   return (
@@ -90,18 +97,12 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
 
       {activeStep === 0 && (
         <div className="space-y-8">
-          <PlanSelection
-            plans={plans}
-            selectedPlanId={selectedPlanId}
-            billingCycle={billingCycle}
-            onPlanChange={setSelectedPlanId}
-            onBillingCycleChange={setBillingCycle}
-          />
+          <PlanSelection plans={plans} />
           <Button
             type="button"
             size="lg"
             disabled={!canContinueFromPlan}
-            onClick={goNext}
+            onClick={goToAccountDetails}
           >
             Continue to company details
           </Button>
@@ -111,7 +112,7 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
       {activeStep === 1 && (
         <form
           noValidate
-          onChange={() => setAccountDetailsValid(false)}
+          onChange={markAccountDetailsAsEditing}
           onSubmit={(event) => {
             event.preventDefault();
             void continueFromAccountDetails();
@@ -124,7 +125,11 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
             register={register}
           />
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-            <Button type="button" variant="secondary" onClick={goBack}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={goBackToPreviousStep}
+            >
               Back to plan
             </Button>
             <Button
@@ -141,17 +146,12 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
 
       {activeStep === 2 && (
         <div className="space-y-6 border-t border-neutral-200 pt-8">
-          <PaymentStep
-            method={paymentMethod}
-            paymentSuccessful={paymentSuccessful}
-            onMethodChange={setPaymentMethod}
-            onPaymentSuccess={confirmPayment}
-          />
+          <PaymentStep />
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
             <Button
               type="button"
               variant="secondary"
-              onClick={goBack}
+              onClick={goBackToPreviousStep}
               disabled={paymentSuccessful}
             >
               Back to company details

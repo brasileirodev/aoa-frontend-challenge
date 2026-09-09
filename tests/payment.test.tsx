@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import PixPaymentPage from "@/app/pix-payment/[paymentId]/page";
 import { POST as processPayment } from "@/app/api/payments/route";
@@ -32,6 +31,7 @@ import {
 } from "@/lib/payment-store";
 import { createQrCodeDataUrl } from "@/lib/qr-code";
 import { getRequestOrigin } from "@/lib/request-origin";
+import { useCheckoutStore } from "@/lib/stores/checkout-store";
 
 const validCard: CardPaymentInput = {
   method: "card",
@@ -53,6 +53,7 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
   resetPixPaymentStore();
+  useCheckoutStore.getState().resetCheckout();
 });
 
 describe("payment domain and fake APIs", () => {
@@ -253,9 +254,21 @@ describe("payment domain and fake APIs", () => {
 });
 
 describe("payment UI", () => {
+  function preparePaymentStep({
+    method = "card",
+    paymentSuccessful = false,
+  }: {
+    method?: "card" | "pix";
+    paymentSuccessful?: boolean;
+  } = {}) {
+    const store = useCheckoutStore.getState();
+
+    store.changePaymentMethod(method);
+    if (paymentSuccessful) store.confirmPayment();
+  }
+
   it("validates and processes the simulated card form", async () => {
     const user = userEvent.setup();
-    const onPaymentSuccess = vi.fn();
     vi.stubGlobal(
       "fetch",
       vi.fn(async () =>
@@ -266,24 +279,9 @@ describe("payment UI", () => {
         }),
       ),
     );
+    preparePaymentStep();
 
-    function CardPaymentHarness() {
-      const [paymentSuccessful, setPaymentSuccessful] = useState(false);
-
-      return (
-        <PaymentStep
-          method="card"
-          paymentSuccessful={paymentSuccessful}
-          onMethodChange={vi.fn()}
-          onPaymentSuccess={() => {
-            onPaymentSuccess();
-            setPaymentSuccessful(true);
-          }}
-        />
-      );
-    }
-
-    render(<CardPaymentHarness />);
+    render(<PaymentStep />);
 
     expect(screen.getByText("Brand: Unknown brand")).toBeVisible();
     await user.click(
@@ -307,15 +305,14 @@ describe("payment UI", () => {
       }),
     );
 
-    expect(onPaymentSuccess).toHaveBeenCalledTimes(1);
     expect(
       await screen.findByText("Simulated card payment approved."),
     ).toBeVisible();
+    expect(useCheckoutStore.getState().paymentSuccessful).toBe(true);
   });
 
   it("shows a warning when simulated card processing is refused", async () => {
     const user = userEvent.setup();
-    const onPaymentSuccess = vi.fn();
     vi.stubGlobal(
       "fetch",
       vi.fn(async () =>
@@ -326,15 +323,9 @@ describe("payment UI", () => {
         }),
       ),
     );
+    preparePaymentStep();
 
-    render(
-      <PaymentStep
-        method="card"
-        paymentSuccessful={false}
-        onMethodChange={vi.fn()}
-        onPaymentSuccess={onPaymentSuccess}
-      />,
-    );
+    render(<PaymentStep />);
 
     await user.type(screen.getByLabelText("Cardholder name"), "Alex Test");
     await user.type(screen.getByLabelText("Card number"), "4111111111111111");
@@ -347,16 +338,14 @@ describe("payment UI", () => {
       }),
     );
 
-    expect(onPaymentSuccess).not.toHaveBeenCalled();
     expect(
       await screen.findByText("Invalid simulated card data."),
     ).toBeVisible();
+    expect(useCheckoutStore.getState().paymentSuccessful).toBe(false);
   });
 
   it("automatically creates Pix QR Code data and polls pending and paid statuses", async () => {
     const user = userEvent.setup();
-    const onMethodChange = vi.fn();
-    const onPaymentSuccess = vi.fn();
     const fetchMock = vi
       .fn()
       .mockResolvedValue(
@@ -404,29 +393,9 @@ describe("payment UI", () => {
         }),
       );
     vi.stubGlobal("fetch", fetchMock);
+    preparePaymentStep();
 
-    function PixPaymentHarness() {
-      const [method, setMethod] = useState<"card" | "pix">("card");
-      const [paymentSuccessful, setPaymentSuccessful] = useState(false);
-
-      return (
-        <PaymentStep
-          method={method}
-          paymentSuccessful={paymentSuccessful}
-          onMethodChange={(nextMethod) => {
-            onMethodChange(nextMethod);
-            setMethod(nextMethod);
-          }}
-          onPaymentSuccess={() => {
-            onPaymentSuccess();
-            setPaymentSuccessful(true);
-          }}
-          paymentStatusPollingMs={100}
-        />
-      );
-    }
-
-    render(<PixPaymentHarness />);
+    render(<PaymentStep paymentStatusPollingMs={100} />);
 
     await user.click(screen.getByRole("button", { name: "Pix" }));
     expect(await screen.findByText("MERIDIAN-PIX-PIX-0001")).toBeVisible();
@@ -446,11 +415,11 @@ describe("payment UI", () => {
     expect(
       screen.queryByText("Pix payment is not confirmed yet."),
     ).not.toBeInTheDocument();
-    expect(onMethodChange).toHaveBeenCalledWith("pix");
+    expect(useCheckoutStore.getState().paymentMethod).toBe("pix");
     expect(
       await screen.findByText("Pix payment confirmed in the simulated flow."),
     ).toBeVisible();
-    expect(onPaymentSuccess).toHaveBeenCalledTimes(1);
+    expect(useCheckoutStore.getState().paymentSuccessful).toBe(true);
     expect(
       screen.getByText("Payment confirmed in the simulated checkout."),
     ).toBeVisible();
@@ -471,15 +440,9 @@ describe("payment UI", () => {
         }),
       ),
     );
+    preparePaymentStep({ method: "pix" });
 
-    render(
-      <PaymentStep
-        method="pix"
-        paymentSuccessful={false}
-        onMethodChange={vi.fn()}
-        onPaymentSuccess={vi.fn()}
-      />,
-    );
+    render(<PaymentStep />);
 
     expect(await screen.findByText("MERIDIAN-PIX-PIX-0001")).toBeVisible();
     expect(
@@ -492,15 +455,9 @@ describe("payment UI", () => {
 
   it("shows a Pix load failure fallback with refresh action", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
+    preparePaymentStep({ method: "pix" });
 
-    render(
-      <PaymentStep
-        method="pix"
-        paymentSuccessful={false}
-        onMethodChange={vi.fn()}
-        onPaymentSuccess={vi.fn()}
-      />,
-    );
+    render(<PaymentStep />);
 
     expect(
       await screen.findByText("We could not load the Pix payment."),
@@ -518,16 +475,18 @@ describe("payment UI", () => {
       "fetch",
       vi
         .fn()
-        .mockResolvedValue(
-          jsonResponse({
-            paymentId: "pix-0001",
-            method: "pix",
-            status: "expired",
-            createdAt: 1,
-            expiresAt: 2,
-            copyCode: "MERIDIAN-PIX-PIX-0001",
-            paymentUrl: "/pix-payment/pix-0001",
-          }),
+        .mockImplementation(() =>
+          Promise.resolve(
+            jsonResponse({
+              paymentId: "pix-0001",
+              method: "pix",
+              status: "expired",
+              createdAt: 1,
+              expiresAt: 2,
+              copyCode: "MERIDIAN-PIX-PIX-0001",
+              paymentUrl: "/pix-payment/pix-0001",
+            }),
+          ),
         )
         .mockResolvedValueOnce(
           jsonResponse({
@@ -552,16 +511,9 @@ describe("payment UI", () => {
           }),
         ),
     );
+    preparePaymentStep({ method: "pix" });
 
-    render(
-      <PaymentStep
-        method="pix"
-        paymentSuccessful={false}
-        onMethodChange={vi.fn()}
-        onPaymentSuccess={vi.fn()}
-        paymentStatusPollingMs={10}
-      />,
-    );
+    render(<PaymentStep paymentStatusPollingMs={10} />);
 
     expect(await screen.findByText("MERIDIAN-PIX-PIX-0001")).toBeVisible();
     expect(
@@ -570,6 +522,43 @@ describe("payment UI", () => {
     expect(
       screen.queryByAltText("QR Code for fake Pix payment"),
     ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Generate a new Pix" }),
+    ).toBeVisible();
+  });
+
+  it("shows Pix load fallback when the status endpoint loses the attempt", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve(
+            jsonResponse({
+              status: "missing",
+            }),
+          ),
+        )
+        .mockResolvedValueOnce(
+          jsonResponse({
+            paymentId: "pix-0001",
+            method: "pix",
+            status: "pending",
+            createdAt: 1,
+            expiresAt: 2,
+            copyCode: "MERIDIAN-PIX-PIX-0001",
+            paymentUrl: "/pix-payment/pix-0001",
+          }),
+        ),
+    );
+    preparePaymentStep({ method: "pix" });
+
+    render(<PaymentStep paymentStatusPollingMs={10} />);
+
+    expect(await screen.findByText("MERIDIAN-PIX-PIX-0001")).toBeVisible();
+    expect(
+      await screen.findByText("We could not load the Pix payment."),
+    ).toBeVisible();
     expect(
       screen.getByRole("button", { name: "Generate a new Pix" }),
     ).toBeVisible();
@@ -590,13 +579,10 @@ describe("payment UI", () => {
         }),
       ),
     );
+    preparePaymentStep({ method: "pix" });
 
     render(
       <PaymentStep
-        method="pix"
-        paymentSuccessful={false}
-        onMethodChange={vi.fn()}
-        onPaymentSuccess={vi.fn()}
         pixCountdownTickMs={100}
         pixExpirationSeconds={3}
         paymentStatusPollingMs={600000}
@@ -613,15 +599,9 @@ describe("payment UI", () => {
   it("keeps Pix creation disabled when payment is already successful", () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
+    preparePaymentStep({ method: "pix", paymentSuccessful: true });
 
-    render(
-      <PaymentStep
-        method="pix"
-        paymentSuccessful
-        onMethodChange={vi.fn()}
-        onPaymentSuccess={vi.fn()}
-      />,
-    );
+    render(<PaymentStep />);
 
     expect(
       screen.getByText("Payment confirmed in the simulated checkout."),
@@ -644,13 +624,10 @@ describe("payment UI", () => {
         }),
       ),
     );
+    preparePaymentStep({ method: "pix" });
 
     render(
       <PaymentStep
-        method="pix"
-        paymentSuccessful={false}
-        onMethodChange={vi.fn()}
-        onPaymentSuccess={vi.fn()}
         pixCountdownTickMs={10}
         pixExpirationSeconds={1}
         paymentStatusPollingMs={600000}
@@ -680,21 +657,9 @@ describe("payment UI", () => {
       "fetch",
       vi.fn(() => pixPromise),
     );
+    preparePaymentStep();
 
-    function PixPaymentHarness() {
-      const [method, setMethod] = useState<"card" | "pix">("card");
-
-      return (
-        <PaymentStep
-          method={method}
-          paymentSuccessful={false}
-          onMethodChange={setMethod}
-          onPaymentSuccess={vi.fn()}
-        />
-      );
-    }
-
-    render(<PixPaymentHarness />);
+    render(<PaymentStep />);
 
     await user.click(screen.getByRole("button", { name: "Pix" }));
     expect(await screen.findByText("Generating QR Code...")).toBeVisible();

@@ -3,26 +3,17 @@
 import { Chip } from "@/components/atoms/Chip";
 import { SelectableCard } from "@/components/atoms/SelectableCard";
 import { ToggleButtonGroup } from "@/components/atoms/ToggleButtonGroup";
-import {
-  getBillingCycleLabel,
-  getPlanPrice,
-  type BillingCycle,
-  type Plan,
-} from "@/lib/api/plans";
+import { getBillingCycleLabel, getPlanPrice, type Plan } from "@/lib/api/plans";
+import { useCheckoutStore } from "@/lib/stores/checkout-store";
 
-export function PlanSelection({
-  plans,
-  selectedPlanId,
-  billingCycle,
-  onPlanChange,
-  onBillingCycleChange,
-}: {
-  plans: Plan[];
-  selectedPlanId: string;
-  billingCycle: BillingCycle;
-  onPlanChange: (planId: string) => void;
-  onBillingCycleChange: (billingCycle: BillingCycle) => void;
-}) {
+export function PlanSelection({ plans }: { plans: Plan[] }) {
+  const selectedPlanId = useCheckoutStore((state) => state.selectedPlanId);
+  const billingCycle = useCheckoutStore((state) => state.billingCycle);
+  const selectPlan = useCheckoutStore((state) => state.selectPlan);
+  const changeBillingCycle = useCheckoutStore(
+    (state) => state.changeBillingCycle,
+  );
+
   return (
     <section aria-labelledby="plan-selection-title" className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -44,7 +35,7 @@ export function PlanSelection({
         <ToggleButtonGroup
           value={billingCycle}
           ariaLabel="Billing cycle"
-          onChange={onBillingCycleChange}
+          onChange={changeBillingCycle}
           className="w-full sm:w-auto sm:min-w-52"
           options={[
             { value: "monthly", label: "Monthly" },
@@ -66,7 +57,7 @@ export function PlanSelection({
             <SelectableCard
               key={plan.id}
               selected={selected}
-              onClick={() => onPlanChange(plan.id)}
+              onClick={() => selectPlan(plan.id)}
               ariaChecked={selected}
               className="min-h-72 min-w-0"
             >
