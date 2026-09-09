@@ -7,8 +7,10 @@ import { Button } from "@/components/atoms/Button";
 import { Notice } from "@/components/atoms/Notice";
 import { Stepper } from "@/components/atoms/Stepper";
 import { AccountDetailsStep } from "@/components/organisms/AccountDetailsStep";
+import { PaymentStep } from "@/components/organisms/PaymentStep";
 import { PlanSelection } from "@/components/organisms/PlanSelection";
 import type { BillingCycle, Plan } from "@/lib/api/plans";
+import type { PaymentMethod } from "@/lib/payment";
 import {
   registrationSchema,
   type RegistrationValues,
@@ -30,6 +32,7 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
   const [activeStep, setActiveStep] = useState(0);
   const [accountDetailsValid, setAccountDetailsValid] = useState(false);
   const [paymentSuccessful, setPaymentSuccessful] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const {
     register,
     control,
@@ -69,8 +72,12 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
 
   function goNext() {
     clearErrors();
-    if (activeStep === 0 && canContinueFromPlan) setActiveStep(1);
-    if (activeStep === 2 && paymentSuccessful) setActiveStep(3);
+    setActiveStep(1);
+  }
+
+  function confirmPayment() {
+    setPaymentSuccessful(true);
+    setActiveStep(3);
   }
 
   return (
@@ -134,11 +141,12 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
 
       {activeStep === 2 && (
         <div className="space-y-6 border-t border-neutral-200 pt-8">
-          <Notice tone={paymentSuccessful ? "success" : "info"}>
-            {paymentSuccessful
-              ? "Payment marked as successful for this frontend preview."
-              : "Payment details will be implemented in US-04. This step is prepared to block review until payment succeeds."}
-          </Notice>
+          <PaymentStep
+            method={paymentMethod}
+            paymentSuccessful={paymentSuccessful}
+            onMethodChange={setPaymentMethod}
+            onPaymentSuccess={confirmPayment}
+          />
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
             <Button
               type="button"
@@ -148,24 +156,6 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
             >
               Back to company details
             </Button>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setPaymentSuccessful(true)}
-                disabled={paymentSuccessful}
-              >
-                Mark payment as successful
-              </Button>
-              <Button
-                type="button"
-                size="lg"
-                disabled={!paymentSuccessful}
-                onClick={goNext}
-              >
-                Continue to review
-              </Button>
-            </div>
           </div>
         </div>
       )}
@@ -176,9 +166,6 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
             Review and success confirmation will be implemented in US-05. The
             flow has reached this step because payment is marked as successful.
           </Notice>
-          <Button type="button" variant="secondary" onClick={goBack}>
-            Back to payment
-          </Button>
         </div>
       )}
     </div>

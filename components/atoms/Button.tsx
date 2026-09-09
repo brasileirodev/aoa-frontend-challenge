@@ -1,9 +1,10 @@
 "use client";
 import MuiButton from "@mui/material/Button";
-import type { ComponentPropsWithRef } from "react";
+import type { ComponentPropsWithRef, ReactNode } from "react";
 export type ButtonProps = Omit<ComponentPropsWithRef<"button">, "color"> & {
   variant?: "primary" | "secondary" | "text";
   size?: "sm" | "md" | "lg";
+  startIcon?: ReactNode;
 };
 export function Button({
   variant = "primary",

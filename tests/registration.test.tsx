@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { RegistrationForm } from "@/components/organisms/RegistrationForm";
 import { getPlans, type Plan } from "@/lib/api/plans";
@@ -42,6 +42,23 @@ const testPlans: Plan[] = [
   },
 ];
 
+function mockSuccessfulCardPayment() {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            method: "card",
+            success: true,
+            message: "Simulated card payment approved.",
+          }),
+          { headers: { "Content-Type": "application/json" } },
+        ),
+    ),
+  );
+}
+
 async function goToAccountDetails(user: ReturnType<typeof userEvent.setup>) {
   await user.click(
     screen.getByRole("button", { name: "Continue to company details" }),
@@ -56,6 +73,46 @@ async function fillValidAccountDetails(
   await user.type(screen.getByLabelText(/Work email/), valid.email);
   await user.type(screen.getByLabelText(/^Password/), valid.password);
 }
+
+function fillValidAccountDetailsFast() {
+  fireEvent.change(screen.getByLabelText(/Full name/), {
+    target: { value: valid.name },
+  });
+  fireEvent.change(screen.getByLabelText(/Company name/), {
+    target: { value: valid.company },
+  });
+  fireEvent.change(screen.getByLabelText(/Work email/), {
+    target: { value: valid.email },
+  });
+  fireEvent.change(screen.getByLabelText(/^Password/), {
+    target: { value: valid.password },
+  });
+}
+
+async function fillValidCardPayment(user: ReturnType<typeof userEvent.setup>) {
+  fireEvent.change(screen.getByLabelText("Cardholder name"), {
+    target: { value: valid.name },
+  });
+  fireEvent.change(screen.getByLabelText("Card number"), {
+    target: { value: "4111111111111111" },
+  });
+  fireEvent.change(screen.getByLabelText("Expiration date"), {
+    target: { value: "12/35" },
+  });
+  fireEvent.change(screen.getByLabelText("CVC"), {
+    target: { value: "123" },
+  });
+  fireEvent.change(screen.getByLabelText("Billing postal code"), {
+    target: { value: "10001" },
+  });
+  await user.click(
+    screen.getByRole("button", { name: "Process simulated card payment" }),
+  );
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("registration contract", () => {
   it("loads plan data through the API layer", async () => {
@@ -150,9 +207,7 @@ describe("registration contract", () => {
       screen.getByRole("button", { name: "Continue to payment" }),
     );
 
-    expect(
-      screen.getByText(/Payment details will be implemented/),
-    ).toBeVisible();
+    expect(screen.getByText(/simulated payment step/i)).toBeVisible();
   });
 
   it("renders plans, highlights the recommended plan and selects one plan", async () => {
@@ -251,32 +306,28 @@ describe("registration contract", () => {
     expect(screen.getByLabelText(/Work email/)).toHaveValue(valid.email);
   });
 
-  it("blocks review until payment succeeds and locks earlier steps after payment", async () => {
+  it("redirects to review after payment succeeds and locks earlier payment steps", async () => {
     const user = userEvent.setup();
+    mockSuccessfulCardPayment();
     render(<RegistrationForm plans={testPlans} />);
 
     await goToAccountDetails(user);
-    await fillValidAccountDetails(user);
+    fillValidAccountDetailsFast();
     await user.click(
       screen.getByRole("button", { name: "Continue to payment" }),
     );
 
     expect(
-      screen.getByRole("button", { name: "Continue to review" }),
-    ).toBeDisabled();
-    await user.click(
-      screen.getByRole("button", { name: "Mark payment as successful" }),
-    );
+      screen.getByRole("button", { name: "Back to company details" }),
+    ).toBeEnabled();
+
+    await fillValidCardPayment(user);
 
     expect(
-      screen.getByRole("button", { name: "Back to company details" }),
-    ).toBeDisabled();
-    await user.click(
-      screen.getByRole("button", { name: "Continue to review" }),
-    );
-
-    expect(screen.getByText(/Review and success confirmation/)).toBeVisible();
-    await user.click(screen.getByRole("button", { name: "Back to payment" }));
-    expect(screen.getByText(/Payment marked as successful/)).toBeVisible();
+      await screen.findByText(/Review and success confirmation/),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Back to payment" }),
+    ).not.toBeInTheDocument();
   });
 });
