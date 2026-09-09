@@ -6,7 +6,12 @@ import { Card } from "@/components/atoms/Card";
 import { Chip } from "@/components/atoms/Chip";
 import { Notice } from "@/components/atoms/Notice";
 import { TextField } from "@/components/atoms/TextField";
-import type { CardPaymentInput } from "@/lib/payment";
+import {
+  formatCardNumber,
+  formatCvc,
+  formatExpirationDate,
+  type CardPaymentInput,
+} from "@/lib/payment";
 
 type CardFeedback = {
   brand: string;
@@ -18,6 +23,7 @@ export function CardPaymentForm({
   feedback,
   message,
   paymentSuccessful,
+  onBack,
   onFieldChange,
   onSubmit,
 }: {
@@ -25,6 +31,7 @@ export function CardPaymentForm({
   feedback: CardFeedback;
   message: string;
   paymentSuccessful: boolean;
+  onBack?: () => void;
   onFieldChange: () => void;
   onSubmit: (cardPayment: CardPaymentInput) => void | Promise<void>;
 }) {
@@ -32,7 +39,23 @@ export function CardPaymentForm({
     formState: { errors },
     handleSubmit,
     register,
+    setValue,
   } = cardForm;
+  const cardNumber = register("cardNumber");
+  const expirationDate = register("expirationDate");
+  const cvc = register("cvc");
+
+  function setMaskedField(
+    field: "cardNumber" | "expirationDate" | "cvc",
+    value: string,
+    formatter: (value: string) => string,
+  ) {
+    setValue(field, formatter(value), {
+      shouldDirty: true,
+      shouldValidate: false,
+    });
+    onFieldChange();
+  }
 
   return (
     <form className="space-y-5" noValidate onSubmit={handleSubmit(onSubmit)}>
@@ -54,7 +77,10 @@ export function CardPaymentForm({
             disabled={paymentSuccessful}
             inputMode="numeric"
             autoComplete="cc-number"
-            {...register("cardNumber", { onChange: onFieldChange })}
+            {...cardNumber}
+            onChange={(event) =>
+              setMaskedField("cardNumber", event.target.value, formatCardNumber)
+            }
           />
           <TextField
             label="Expiration date"
@@ -62,7 +88,15 @@ export function CardPaymentForm({
             error={errors.expirationDate?.message}
             disabled={paymentSuccessful}
             autoComplete="cc-exp"
-            {...register("expirationDate", { onChange: onFieldChange })}
+            inputMode="numeric"
+            {...expirationDate}
+            onChange={(event) =>
+              setMaskedField(
+                "expirationDate",
+                event.target.value,
+                formatExpirationDate,
+              )
+            }
           />
           <TextField
             label="CVC"
@@ -71,7 +105,10 @@ export function CardPaymentForm({
             inputMode="numeric"
             autoComplete="cc-csc"
             type="password"
-            {...register("cvc", { onChange: onFieldChange })}
+            {...cvc}
+            onChange={(event) =>
+              setMaskedField("cvc", event.target.value, formatCvc)
+            }
           />
           <TextField
             label="Billing postal code"
@@ -89,9 +126,23 @@ export function CardPaymentForm({
         </Notice>
       )}
 
-      <Button type="submit" size="lg" disabled={paymentSuccessful}>
-        Process simulated card payment
-      </Button>
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {onBack ? (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onBack}
+            disabled={paymentSuccessful}
+          >
+            Back to company details
+          </Button>
+        ) : (
+          <span aria-hidden="true" />
+        )}
+        <Button type="submit" size="lg" disabled={paymentSuccessful}>
+          Process simulated card payment
+        </Button>
+      </div>
     </form>
   );
 }

@@ -17,6 +17,9 @@ import {
 import {
   detectCardBrand,
   detectIssuingBank,
+  formatCardNumber,
+  formatCvc,
+  formatExpirationDate,
   getCardFeedback,
   isFutureExpiration,
   isValidCardNumber,
@@ -72,6 +75,12 @@ describe("payment domain and fake APIs", () => {
       brand: "Visa",
       bank: "Meridian Demo Bank",
     });
+    expect(formatCardNumber("4111abc111111111111999")).toBe(
+      "4111 1111 1111 1111",
+    );
+    expect(formatExpirationDate("123599")).toBe("12/35");
+    expect(formatExpirationDate("1")).toBe("1");
+    expect(formatCvc("1234abc")).toBe("123");
     expect(isFutureExpiration("bad")).toBe(false);
     expect(isFutureExpiration("01/20", new Date(2026, 0, 1))).toBe(false);
     expect(isFutureExpiration("12/35", new Date(2026, 0, 1))).toBe(true);
@@ -292,11 +301,19 @@ describe("payment UI", () => {
 
     expect(await screen.findByText("Enter the cardholder name.")).toBeVisible();
     await user.type(screen.getByLabelText("Cardholder name"), "Alex Test");
-    await user.type(screen.getByLabelText("Card number"), "4111111111111111");
-    await user.type(screen.getByLabelText("Expiration date"), "12/35");
-    await user.type(screen.getByLabelText("CVC"), "123");
+    await user.type(
+      screen.getByLabelText("Card number"),
+      "4111abc111111111111999",
+    );
+    await user.type(screen.getByLabelText("Expiration date"), "123599");
+    await user.type(screen.getByLabelText("CVC"), "1234abc");
     await user.type(screen.getByLabelText("Billing postal code"), "10001");
 
+    expect(screen.getByLabelText("Card number")).toHaveValue(
+      "4111 1111 1111 1111",
+    );
+    expect(screen.getByLabelText("Expiration date")).toHaveValue("12/35");
+    expect(screen.getByLabelText("CVC")).toHaveValue("123");
     expect(screen.getByText("Brand: Visa")).toBeVisible();
     expect(screen.getByText("Bank: Meridian Demo Bank")).toBeVisible();
     await user.click(

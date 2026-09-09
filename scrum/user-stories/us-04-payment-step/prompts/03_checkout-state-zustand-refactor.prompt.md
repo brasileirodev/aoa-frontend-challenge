@@ -14,6 +14,7 @@ The project already implements a four-step registration checkout:
 - Review
 
 US-04 payment behavior is already implemented and approved:
+
 - card payment uses React Hook Form and submits directly to the internal payment API
 - Pix creates a simulated payment attempt when the Pix view mounts
 - Pix polling is silent and runs in the background
@@ -22,6 +23,7 @@ US-04 payment behavior is already implemented and approved:
 - after payment confirmation, the user cannot return to Payment
 
 Current refactor direction:
+
 - Zustand should reduce prop drilling for checkout flow state
 - Zustand must not mirror form fields on every keystroke
 - React Hook Form remains responsible for form-local state and validation
@@ -48,6 +50,7 @@ Avoid large prop objects that simply recreate prop drilling through another shap
 Install and configure Zustand if it is not already installed.
 
 Create a focused checkout store that owns:
+
 - active step
 - selected plan id
 - billing cycle
@@ -58,6 +61,7 @@ Create a focused checkout store that owns:
 - checkout flow actions such as selecting plan, changing billing cycle, saving valid account details, changing payment method, confirming payment and navigating allowed steps
 
 Refactor the checkout components to consume this store with selectors:
+
 - RegistrationForm should stop owning checkout flow state with multiple useState calls.
 - Plan selection should read and update plan and billing state through the store.
 - Company details should keep React Hook Form local, then save the validated account details snapshot only when advancing to Payment.
@@ -66,6 +70,7 @@ Refactor the checkout components to consume this store with selectors:
 - Review should remain locked after payment confirmation, with no return to Payment.
 
 Keep the existing Pix hook responsible for:
+
 - creating Pix on view mount
 - clearing Pix state on unmount
 - polling Pix status
@@ -85,9 +90,10 @@ The test suite must keep 100% coverage for statements, branches, functions, and 
 
 <output_contract>
 Return a concise summary with:
+
 - where the Zustand store was added
 - which state moved into the store
 - which state intentionally stayed local
 - confirmation that approved behavior was preserved
 - validation results
-</output_contract>
+  </output_contract>

@@ -159,17 +159,7 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
 
       {activeStep === 2 && (
         <div className="space-y-6 border-t border-neutral-200 pt-8">
-          <PaymentStep />
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={goBackToPreviousStep}
-              disabled={paymentSuccessful}
-            >
-              Back to company details
-            </Button>
-          </div>
+          <PaymentStep onBack={goBackToPreviousStep} />
         </div>
       )}
 

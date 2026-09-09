@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
+import { Button } from "@/components/atoms/Button";
 import { Notice } from "@/components/atoms/Notice";
 import { ToggleButtonGroup } from "@/components/atoms/ToggleButtonGroup";
 import { CardPaymentForm } from "@/components/organisms/payment/CardPaymentForm";
@@ -35,10 +36,12 @@ const emptyCardFields: CardFields = {
 };
 
 export function PaymentStep({
+  onBack,
   pixCountdownTickMs = 1000,
   pixExpirationSeconds = PIX_PAYMENT_EXPIRATION_SECONDS,
   paymentStatusPollingMs = PIX_STATUS_POLLING_MS,
 }: {
+  onBack?: () => void;
   pixCountdownTickMs?: number;
   pixExpirationSeconds?: number;
   paymentStatusPollingMs?: number;
@@ -114,6 +117,7 @@ export function PaymentStep({
           feedback={feedback}
           message={message}
           paymentSuccessful={paymentSuccessful}
+          onBack={onBack}
           onFieldChange={clearPaymentMessage}
           onSubmit={submitCardPayment}
         />
@@ -125,6 +129,19 @@ export function PaymentStep({
           paymentSuccessful={paymentSuccessful}
           onRefresh={pixPaymentState.createPix}
         />
+      )}
+
+      {method === "pix" && onBack && (
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onBack}
+            disabled={paymentSuccessful}
+          >
+            Back to company details
+          </Button>
+        </div>
       )}
     </div>
   );

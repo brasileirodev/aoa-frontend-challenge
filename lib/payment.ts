@@ -15,6 +15,10 @@ export const paymentMethodOptions: { value: PaymentMethod; label: string }[] = [
   { value: "pix", label: "Pix" },
 ];
 
+const CARD_NUMBER_MAX_DIGITS = 16;
+const CVC_MAX_DIGITS = 3;
+const EXPIRATION_DATE_MAX_DIGITS = 4;
+
 export const cardPaymentSchema = z.object({
   method: z.literal("card"),
   cardholderName: z
@@ -25,6 +29,10 @@ export const cardPaymentSchema = z.object({
   cardNumber: z
     .string()
     .trim()
+    .refine(
+      (value) => onlyDigits(value).length === CARD_NUMBER_MAX_DIGITS,
+      "Enter a 16-digit card number.",
+    )
     .refine((value) => isValidCardNumber(value), "Enter a valid card number."),
   expirationDate: z
     .string()
@@ -34,7 +42,7 @@ export const cardPaymentSchema = z.object({
   cvc: z
     .string()
     .trim()
-    .regex(/^\d{3,4}$/, "Enter a valid CVC."),
+    .regex(/^\d{3}$/, "Enter a valid CVC."),
   billingPostalCode: z
     .string()
     .trim()
@@ -45,6 +53,24 @@ export type CardPaymentInput = z.infer<typeof cardPaymentSchema>;
 
 export function onlyDigits(value: string) {
   return value.replace(/\D/g, "");
+}
+
+export function formatCardNumber(value: string) {
+  return limitDigits(value, CARD_NUMBER_MAX_DIGITS)
+    .replace(/(\d{4})(?=\d)/g, "$1 ")
+    .trim();
+}
+
+export function formatExpirationDate(value: string) {
+  const digits = limitDigits(value, EXPIRATION_DATE_MAX_DIGITS);
+
+  if (digits.length <= 2) return digits;
+
+  return digits.slice(0, 2) + "/" + digits.slice(2);
+}
+
+export function formatCvc(value: string) {
+  return limitDigits(value, CVC_MAX_DIGITS);
 }
 
 export function detectCardBrand(cardNumber: string): CardFeedback["brand"] {
@@ -108,4 +134,8 @@ export function isValidCardNumber(value: string) {
   }
 
   return sum % 10 === 0;
+}
+
+function limitDigits(value: string, maxLength: number) {
+  return onlyDigits(value).slice(0, maxLength);
 }
