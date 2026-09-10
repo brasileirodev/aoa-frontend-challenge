@@ -15,7 +15,9 @@ import { SelectableCard } from "@/components/atoms/SelectableCard";
 import { TextField } from "@/components/atoms/TextField";
 import { ToggleButtonGroup } from "@/components/atoms/ToggleButtonGroup";
 import { Typography } from "@/components/atoms/Typography";
+import { CardBrandMark } from "@/components/molecules/CardBrandMark";
 import { FeatureCard } from "@/components/molecules/FeatureCard";
+import { PasswordField } from "@/components/molecules/PasswordField";
 import { RequirementList } from "@/components/molecules/RequirementList";
 import { FeaturesSection } from "@/components/organisms/FeaturesSection";
 import { Footer } from "@/components/organisms/Footer";
@@ -135,10 +137,24 @@ describe("shared UI components", () => {
     expect(getBillingCycleLabel("annual")).toBe("year");
   });
 
+  it("renders the default password field as a password input", () => {
+    render(<PasswordField id="default-password" label="Default password" />);
+
+    expect(screen.getByLabelText("Default password")).toHaveAttribute(
+      "type",
+      "password",
+    );
+  });
+
   it("renders molecule, organism, template and page contracts", async () => {
     render(
       <div>
         <FeatureCard title="Feature title" description="Feature description" />
+        <CardBrandMark brand="Visa" />
+        <CardBrandMark brand="Mastercard" />
+        <CardBrandMark brand="American Express" />
+        <CardBrandMark brand="Elo" />
+        <CardBrandMark brand="Unknown brand" />
         <RequirementList
           id="requirements"
           items={[
@@ -174,6 +190,17 @@ describe("shared UI components", () => {
     );
 
     expect(screen.getByText("Feature title")).toBeVisible();
+    expect(screen.getByRole("img", { name: "Visa card brand" })).toBeVisible();
+    expect(
+      screen.getByRole("img", { name: "Mastercard card brand" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("img", { name: "American Express card brand" }),
+    ).toBeVisible();
+    expect(screen.getByRole("img", { name: "Elo card brand" })).toBeVisible();
+    expect(
+      screen.queryByRole("img", { name: "Unknown brand card brand" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByText(/Met:/)).toBeInTheDocument();
     expect(screen.getByText(/Not met:/)).toBeInTheDocument();
     expect(screen.getAllByText("Meridian").length).toBeGreaterThan(0);

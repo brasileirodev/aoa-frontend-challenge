@@ -3,11 +3,13 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PixPaymentPage from "@/app/pix-payment/[paymentId]/page";
 import { POST as processPayment } from "@/app/api/payments/route";
+import { GET as getCardBrandRoute } from "@/app/api/payments/card-brand/route";
 import { POST as createPix } from "@/app/api/payments/pix/route";
 import { GET as getPix } from "@/app/api/payments/pix/[paymentId]/route";
 import { POST as payPix } from "@/app/api/payments/pix/[paymentId]/pay/route";
 import { FakePixPaymentScreen } from "@/components/organisms/FakePixPaymentScreen";
 import { PaymentStep } from "@/components/organisms/PaymentStep";
+import { getCardBrand } from "@/lib/api/card-brand";
 import {
   confirmPixPayment,
   createPixPaymentRequest,
@@ -17,6 +19,7 @@ import {
 import {
   detectCardBrand,
   detectIssuingBank,
+  formatCardholderName,
   formatCardNumber,
   formatCvc,
   formatExpirationDate,
@@ -35,6 +38,7 @@ import {
 import { createQrCodeDataUrl } from "@/lib/qr-code";
 import { getRequestOrigin } from "@/lib/request-origin";
 import { useCheckoutStore } from "@/lib/stores/checkout-store";
+import { CARD_BRAND_CACHE_TTL_MS } from "@/lib/constants/payment";
 
 const validCard: CardPaymentInput = {
   method: "card",
@@ -75,6 +79,7 @@ describe("payment domain and fake APIs", () => {
       brand: "Visa",
       bank: "Meridian Demo Bank",
     });
+    expect(formatCardholderName("Alex Test 123!")).toBe("Alex Test ");
     expect(formatCardNumber("4111abc111111111111999")).toBe(
       "4111 1111 1111 1111",
     );
@@ -165,6 +170,43 @@ describe("payment domain and fake APIs", () => {
     });
   });
 
+  it("detects card brand through the internal cached route", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1000);
+
+    const visaResponse = await getCardBrandRoute(
+      new Request("https://app.test/api/payments/card-brand?number=41111111"),
+    );
+    const cachedVisaResponse = await getCardBrandRoute(
+      new Request("https://app.test/api/payments/card-brand?number=41111111"),
+    );
+    const unknownResponse = await getCardBrandRoute(
+      new Request("https://app.test/api/payments/card-brand?number=9"),
+    );
+    const emptyResponse = await getCardBrandRoute(
+      new Request("https://app.test/api/payments/card-brand"),
+    );
+
+    vi.setSystemTime(1000 + CARD_BRAND_CACHE_TTL_MS + 1);
+    const refreshedVisaResponse = await getCardBrandRoute(
+      new Request("https://app.test/api/payments/card-brand?number=41111111"),
+    );
+
+    await expect(visaResponse.json()).resolves.toEqual({ brand: "Visa" });
+    await expect(cachedVisaResponse.json()).resolves.toEqual({
+      brand: "Visa",
+    });
+    await expect(unknownResponse.json()).resolves.toEqual({
+      brand: "Unknown brand",
+    });
+    await expect(emptyResponse.json()).resolves.toEqual({
+      brand: "Unknown brand",
+    });
+    await expect(refreshedVisaResponse.json()).resolves.toEqual({
+      brand: "Visa",
+    });
+  });
+
   it("calls payment client helpers", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -202,6 +244,23 @@ describe("payment domain and fake APIs", () => {
       status: "paid",
     });
     expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("handles card brand client helper fallbacks", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("41111111")) return jsonResponse({ brand: "Visa" });
+      if (url.includes("empty")) return jsonResponse({});
+
+      return jsonResponse({}, 500);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(getCardBrand("")).resolves.toBe("Unknown brand");
+    await expect(getCardBrand("41111111")).resolves.toBe("Visa");
+    await expect(getCardBrand("empty")).resolves.toBe("Unknown brand");
+    await expect(getCardBrand("fail")).resolves.toBe("Unknown brand");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("encapsulates QR Code generation behind the project helper", async () => {
@@ -280,19 +339,26 @@ describe("payment UI", () => {
     const user = userEvent.setup();
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () =>
-        jsonResponse({
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.startsWith("/api/payments/card-brand")) {
+          return jsonResponse({ brand: "Visa" });
+        }
+
+        return jsonResponse({
           method: "card",
           success: true,
           message: "Simulated card payment approved.",
-        }),
-      ),
+        });
+      }),
     );
     preparePaymentStep();
 
     render(<PaymentStep />);
 
-    expect(screen.getByText("Brand: Unknown brand")).toBeVisible();
+    expect(
+      screen.queryByRole("img", { name: "Unknown brand card brand" }),
+    ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", {
         name: "Process simulated card payment",
@@ -300,7 +366,7 @@ describe("payment UI", () => {
     );
 
     expect(await screen.findByText("Enter the cardholder name.")).toBeVisible();
-    await user.type(screen.getByLabelText("Cardholder name"), "Alex Test");
+    await user.type(screen.getByLabelText("Cardholder name"), "Alex Test 123!");
     await user.type(
       screen.getByLabelText("Card number"),
       "4111abc111111111111999",
@@ -309,13 +375,16 @@ describe("payment UI", () => {
     await user.type(screen.getByLabelText("CVC"), "1234abc");
     await user.type(screen.getByLabelText("Billing postal code"), "10001");
 
+    expect(screen.getByLabelText("Cardholder name")).toHaveValue("Alex Test ");
     expect(screen.getByLabelText("Card number")).toHaveValue(
       "4111 1111 1111 1111",
     );
     expect(screen.getByLabelText("Expiration date")).toHaveValue("12/35");
     expect(screen.getByLabelText("CVC")).toHaveValue("123");
-    expect(screen.getByText("Brand: Visa")).toBeVisible();
-    expect(screen.getByText("Bank: Meridian Demo Bank")).toBeVisible();
+    expect(screen.getByRole("img", { name: "Visa card brand" })).toBeVisible();
+    expect(
+      screen.queryByText("Bank: Meridian Demo Bank"),
+    ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", {
         name: "Process simulated card payment",
@@ -332,13 +401,18 @@ describe("payment UI", () => {
     const user = userEvent.setup();
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () =>
-        jsonResponse({
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.startsWith("/api/payments/card-brand")) {
+          return jsonResponse({ brand: "Visa" });
+        }
+
+        return jsonResponse({
           method: "card",
           success: false,
           message: "Invalid simulated card data.",
-        }),
-      ),
+        });
+      }),
     );
     preparePaymentStep();
 

@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { Card } from "@/components/atoms/Card";
 import { Notice } from "@/components/atoms/Notice";
 import { RefreshActionButton } from "@/components/atoms/RefreshActionButton";
 import type { PixPayment } from "@/lib/payment-store";
@@ -166,7 +165,7 @@ export function PixPaymentPanel({
   onRefresh: () => void;
 }) {
   return (
-    <Card className="space-y-5">
+    <div className="space-y-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-start">
         <div className="grid size-44 place-items-center rounded-lg border border-neutral-300 bg-white p-3">
           <PixQrCodeFrame
@@ -199,6 +198,6 @@ export function PixPaymentPanel({
         pixPayment={pixPayment}
         pixPaymentExpired={pixPaymentExpired}
       />
-    </Card>
+    </div>
   );
 }

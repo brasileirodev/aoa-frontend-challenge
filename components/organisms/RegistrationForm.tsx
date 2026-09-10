@@ -5,6 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/atoms/Button";
 import { Stepper } from "@/components/atoms/Stepper";
+import { StepContent } from "@/components/atoms/StepContent";
 import { AccountDetailsStep } from "@/components/organisms/AccountDetailsStep";
 import { PaymentStep } from "@/components/organisms/PaymentStep";
 import { PlanSelection } from "@/components/organisms/PlanSelection";
@@ -84,7 +85,8 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
     const valid = await trigger(undefined, { shouldFocus: true });
 
     if (valid) {
-      saveAccountDetails(getValues());
+      const accountDetails = getValues();
+      saveAccountDetails(accountDetails);
     }
   }
 
@@ -101,7 +103,7 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <Stepper
         steps={steps}
         activeStep={activeStep}
@@ -109,7 +111,7 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
       />
 
       {activeStep === 0 && (
-        <div className="space-y-8">
+        <StepContent>
           <PlanSelection plans={plans} />
           <Button
             type="button"
@@ -119,54 +121,49 @@ export function RegistrationForm({ plans }: { plans: Plan[] }) {
           >
             Continue to company details
           </Button>
-        </div>
+        </StepContent>
       )}
 
       {activeStep === 1 && (
-        <form
-          noValidate
-          onChange={markAccountDetailsAsEditing}
-          onSubmit={(event) => {
-            event.preventDefault();
-            void continueFromAccountDetails();
-          }}
-          className="space-y-8 border-t border-neutral-200 pt-8"
-        >
-          <AccountDetailsStep
-            errors={errors}
-            password={password}
-            register={register}
-          />
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={goBackToPreviousStep}
-            >
-              Back to plan
-            </Button>
-            <Button
-              type="submit"
-              size="lg"
-              className="gap-3 disabled:opacity-60"
-            >
-              Continue to payment
-              <span aria-hidden="true">→</span>
-            </Button>
+        <StepContent>
+          <div onChange={markAccountDetailsAsEditing} className="space-y-8">
+            <AccountDetailsStep
+              errors={errors}
+              password={password}
+              register={register}
+            />
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={goBackToPreviousStep}
+              >
+                Back to plan
+              </Button>
+              <Button
+                type="button"
+                size="lg"
+                className="gap-3 disabled:opacity-60"
+                onClick={() => void continueFromAccountDetails()}
+              >
+                Continue to payment
+                <span aria-hidden="true">→</span>
+              </Button>
+            </div>
           </div>
-        </form>
+        </StepContent>
       )}
 
       {activeStep === 2 && (
-        <div className="space-y-6 border-t border-neutral-200 pt-8">
+        <StepContent>
           <PaymentStep onBack={goBackToPreviousStep} />
-        </div>
+        </StepContent>
       )}
 
       {activeStep === 3 && (
-        <div className="space-y-6 border-t border-neutral-200 pt-8">
+        <StepContent>
           <ReviewStep plans={plans} onStartOver={startOverCheckout} />
-        </div>
+        </StepContent>
       )}
     </div>
   );

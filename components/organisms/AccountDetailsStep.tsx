@@ -20,7 +20,7 @@ export function AccountDetailsStep({
   register: UseFormRegister<RegistrationValues>;
 }) {
   return (
-    <div className="max-w-2xl space-y-5">
+    <div className="max-w-3xl space-y-5">
       <TextField
         id="register-name"
         label="Full name"
@@ -45,7 +45,7 @@ export function AccountDetailsStep({
         id="register-email"
         label="Work email"
         type="email"
-        autoComplete="email"
+        autoComplete="off"
         autoCapitalize="none"
         spellCheck={false}
         placeholder="alex@company.com"
@@ -58,7 +58,10 @@ export function AccountDetailsStep({
         <PasswordField
           id="register-password"
           label="Password"
-          autoComplete="new-password"
+          autoComplete="off"
+          data-1p-ignore="true"
+          data-lpignore="true"
+          suppressCredentialSave
           placeholder="Create a strong password"
           required
           maxLength={128}

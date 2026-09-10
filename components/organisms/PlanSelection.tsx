@@ -18,12 +18,9 @@ export function PlanSelection({ plans }: { plans: Plan[] }) {
     <section aria-labelledby="plan-selection-title" className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
-            Step 1
-          </p>
           <h2
             id="plan-selection-title"
-            className="mt-2 text-xl font-semibold text-neutral-900"
+            className="text-xl font-semibold text-neutral-900"
           >
             Choose your plan
           </h2>

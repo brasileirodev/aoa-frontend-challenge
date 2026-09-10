@@ -3,6 +3,8 @@ import type { BillingCycle } from "@/lib/api/plans";
 import type { CardBrand, PaymentMethod } from "@/lib/payment";
 import type { RegistrationValues } from "@/lib/registration-schema";
 
+type AccountDetails = Pick<RegistrationValues, "name" | "company" | "email">;
+
 export type PaymentSummary =
   | {
       method: "card";
@@ -18,7 +20,7 @@ type CheckoutState = {
   activeStep: number;
   selectedPlanId: string;
   billingCycle: BillingCycle;
-  accountDetails: RegistrationValues | null;
+  accountDetails: AccountDetails | null;
   accountDetailsCompleted: boolean;
   paymentMethod: PaymentMethod;
   paymentSummary: PaymentSummary | null;
@@ -68,7 +70,15 @@ export const useCheckoutStore = create<CheckoutStore>()((set) => ({
   markAccountDetailsAsEditing: () =>
     set({ accountDetails: null, accountDetailsCompleted: false }),
   saveAccountDetails: (accountDetails) =>
-    set({ accountDetails, accountDetailsCompleted: true, activeStep: 2 }),
+    set({
+      accountDetails: {
+        name: accountDetails.name,
+        company: accountDetails.company,
+        email: accountDetails.email,
+      },
+      accountDetailsCompleted: true,
+      activeStep: 2,
+    }),
   changePaymentMethod: (paymentMethod) => set({ paymentMethod }),
   confirmPayment: (paymentSummary) =>
     set({

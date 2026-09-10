@@ -37,9 +37,5 @@ export function getPaymentSummaryLabel(paymentSummary: PaymentSummary | null) {
   if (!paymentSummary) return "Payment confirmed";
   if (paymentSummary.method === "pix") return "Pix payment confirmed";
 
-  return [
-    paymentSummary.brand,
-    paymentSummary.bank,
-    paymentSummary.maskedNumber,
-  ].join(" - ");
+  return [paymentSummary.brand, paymentSummary.maskedNumber].join(" - ");
 }

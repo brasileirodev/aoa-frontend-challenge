@@ -52,6 +52,6 @@ describe("checkout summary helpers", () => {
         bank: "Meridian Demo Bank",
         maskedNumber: "**** 1111",
       }),
-    ).toBe("Visa - Meridian Demo Bank - **** 1111");
+    ).toBe("Visa - **** 1111");
   });
 });

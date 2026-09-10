@@ -25,7 +25,8 @@ export const cardPaymentSchema = z.object({
     .string()
     .trim()
     .min(2, "Enter the cardholder name.")
-    .max(100, "Use no more than 100 characters."),
+    .max(100, "Use no more than 100 characters.")
+    .regex(/^[A-Za-z\s]+$/, "Use letters and spaces only."),
   cardNumber: z
     .string()
     .trim()
@@ -53,6 +54,10 @@ export type CardPaymentInput = z.infer<typeof cardPaymentSchema>;
 
 export function onlyDigits(value: string) {
   return value.replace(/\D/g, "");
+}
+
+export function formatCardholderName(value: string) {
+  return value.replace(/[^A-Za-z\s]/g, "");
 }
 
 export function formatCardNumber(value: string) {

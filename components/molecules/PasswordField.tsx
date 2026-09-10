@@ -2,14 +2,33 @@
 import { useState } from "react";
 import { Button } from "@/components/atoms/Button";
 import { TextField, type TextFieldProps } from "@/components/atoms/TextField";
-export function PasswordField(
-  props: Omit<TextFieldProps, "type" | "endAdornment">,
-) {
+
+type PasswordFieldProps = Omit<TextFieldProps, "type" | "endAdornment"> & {
+  suppressCredentialSave?: boolean;
+};
+
+const credentialSafePasswordClassName =
+  "[&_.MuiInputBase-input]:[-webkit-text-security:disc]";
+
+export function PasswordField({
+  suppressCredentialSave = false,
+  className,
+  ...props
+}: PasswordFieldProps) {
   const [visible, setVisible] = useState(false);
+  const shouldUseCredentialSafeInput = suppressCredentialSave && !visible;
+  const passwordClassName = [
+    className,
+    shouldUseCredentialSafeInput ? credentialSafePasswordClassName : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <TextField
       {...props}
-      type={visible ? "text" : "password"}
+      className={passwordClassName}
+      type={visible || suppressCredentialSave ? "text" : "password"}
       endAdornment={
         <Button
           variant="text"

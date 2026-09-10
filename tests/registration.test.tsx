@@ -47,17 +47,20 @@ const testPlans: Plan[] = [
 function mockSuccessfulCardPayment() {
   vi.stubGlobal(
     "fetch",
-    vi.fn(
-      async () =>
-        new Response(
-          JSON.stringify({
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      const body = url.startsWith("/api/payments/card-brand")
+        ? { brand: "Visa" }
+        : {
             method: "card",
             success: true,
             message: "Simulated card payment approved.",
-          }),
-          { headers: { "Content-Type": "application/json" } },
-        ),
-    ),
+          };
+
+      return new Response(JSON.stringify(body), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }),
   );
 }
 
@@ -201,11 +204,18 @@ describe("registration contract", () => {
     await fillValidAccountDetails(user);
 
     const password = screen.getByLabelText(/^Password/);
-    expect(password).toHaveAttribute("type", "password");
+    const passwordField = password.closest(".MuiFormControl-root");
+
+    expect(password).toHaveAttribute("type", "text");
+    expect(passwordField?.className).toContain("-webkit-text-security:disc");
     await user.click(screen.getByRole("button", { name: "Show password" }));
     expect(password).toHaveAttribute("type", "text");
+    expect(passwordField?.className).not.toContain(
+      "-webkit-text-security:disc",
+    );
     await user.click(screen.getByRole("button", { name: "Hide password" }));
-    expect(password).toHaveAttribute("type", "password");
+    expect(password).toHaveAttribute("type", "text");
+    expect(passwordField?.className).toContain("-webkit-text-security:disc");
     await user.click(
       screen.getByRole("button", { name: "Continue to payment" }),
     );
@@ -313,6 +323,7 @@ describe("registration contract", () => {
     expect(screen.getByLabelText(/Full name/)).toHaveValue(valid.name);
     expect(screen.getByLabelText(/Company name/)).toHaveValue(valid.company);
     expect(screen.getByLabelText(/Work email/)).toHaveValue(valid.email);
+    expect(screen.getByLabelText(/^Password/)).toHaveValue(valid.password);
   });
 
   it("redirects to review after payment succeeds and locks earlier payment steps", async () => {
@@ -339,9 +350,7 @@ describe("registration contract", () => {
     expect(screen.getByText(valid.name)).toBeVisible();
     expect(screen.getByText(valid.company)).toBeVisible();
     expect(screen.getByText(valid.email)).toBeVisible();
-    expect(
-      screen.getByText("Visa - Meridian Demo Bank - **** 1111"),
-    ).toBeVisible();
+    expect(screen.getByText("Visa - **** 1111")).toBeVisible();
     expect(screen.queryByText("123")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Back to payment" }),

@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
-import { Button } from "@/components/atoms/Button";
 import { Notice } from "@/components/atoms/Notice";
 import { ToggleButtonGroup } from "@/components/atoms/ToggleButtonGroup";
 import { CardPaymentForm } from "@/components/organisms/payment/CardPaymentForm";
+import { PaymentActions } from "@/components/organisms/payment/PaymentActions";
+import { PaymentMethodPanel } from "@/components/organisms/payment/PaymentMethodPanel";
 import { PixPaymentPanel } from "@/components/organisms/payment/PixPaymentPanel";
+import { useCardBrandFeedback } from "@/components/organisms/payment/useCardBrandFeedback";
 import { usePixPayment } from "@/components/organisms/payment/usePixPayment";
 import { processCardPayment } from "@/lib/api/payments";
 import {
@@ -16,7 +18,7 @@ import {
 } from "@/lib/constants/payment";
 import {
   cardPaymentSchema,
-  getCardFeedback,
+  detectCardBrand,
   onlyDigits,
   paymentMethodOptions,
   type CardPaymentInput,
@@ -67,7 +69,7 @@ export function PaymentStep({
     name: "cardNumber",
     defaultValue: "",
   });
-  const feedback = useMemo(() => getCardFeedback(cardNumber), [cardNumber]);
+  const feedback = useCardBrandFeedback(cardNumber);
   const pixPaymentState = usePixPayment({
     method,
     paymentSuccessful,
@@ -108,39 +110,51 @@ export function PaymentStep({
         ariaLabel="Payment method"
         onChange={selectPaymentMethod}
         options={paymentMethodOptions}
-        className="max-w-md"
+        className="mx-auto max-w-md"
       />
 
       {method === "card" && (
-        <CardPaymentForm
-          cardForm={cardForm}
-          feedback={feedback}
-          message={message}
-          paymentSuccessful={paymentSuccessful}
-          onBack={onBack}
-          onFieldChange={clearPaymentMessage}
-          onSubmit={submitCardPayment}
-        />
+        <form
+          className="space-y-5"
+          noValidate
+          onSubmit={cardForm.handleSubmit(submitCardPayment)}
+        >
+          <PaymentMethodPanel>
+            <CardPaymentForm
+              cardForm={cardForm}
+              feedback={feedback}
+              paymentSuccessful={paymentSuccessful}
+              onFieldChange={clearPaymentMessage}
+            />
+          </PaymentMethodPanel>
+
+          {message && (
+            <Notice tone={paymentSuccessful ? "success" : "warning"}>
+              {message}
+            </Notice>
+          )}
+
+          <PaymentActions
+            paymentSuccessful={paymentSuccessful}
+            submitLabel="Process simulated card payment"
+            onBack={onBack}
+          />
+        </form>
       )}
 
       {method === "pix" && (
-        <PixPaymentPanel
-          {...pixPaymentState}
-          paymentSuccessful={paymentSuccessful}
-          onRefresh={pixPaymentState.createPix}
-        />
-      )}
-
-      {method === "pix" && onBack && (
-        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={onBack}
-            disabled={paymentSuccessful}
-          >
-            Back to company details
-          </Button>
+        <div className="space-y-5">
+          <PaymentMethodPanel>
+            <PixPaymentPanel
+              {...pixPaymentState}
+              paymentSuccessful={paymentSuccessful}
+              onRefresh={pixPaymentState.createPix}
+            />
+          </PaymentMethodPanel>
+          <PaymentActions
+            paymentSuccessful={paymentSuccessful}
+            onBack={onBack}
+          />
         </div>
       )}
     </div>
@@ -150,13 +164,12 @@ export function PaymentStep({
 function createCardPaymentSummary(
   cardPayment: CardPaymentInput,
 ): PaymentSummary {
-  const feedback = getCardFeedback(cardPayment.cardNumber);
   const lastFourDigits = onlyDigits(cardPayment.cardNumber).slice(-4);
 
   return {
     method: "card",
-    brand: feedback.brand,
-    bank: feedback.bank,
+    brand: detectCardBrand(cardPayment.cardNumber),
+    bank: "Not identified",
     maskedNumber: "**** " + lastFourDigits,
   };
 }
