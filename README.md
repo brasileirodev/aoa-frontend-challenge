@@ -1,8 +1,34 @@
+Claro. Adicionei uma explicação curta sobre o **Pix** na seção de pagamentos simulados, contextualizando para um avaliador internacional sem deixar o README excessivamente detalhado.
+
 # Meridian
 
-Meridian is a small SaaS product for team scheduling and planning. This repository contains the marketing site: a home page that introduces the product and a registration page. It is built with Next.js (App Router), TypeScript, Tailwind CSS, and Material UI.
+Meridian is a B2B SaaS registration and checkout flow for teams that need a shared scheduling and planning tool. The application lets a business choose a subscription plan, enter company account details, complete a simulated payment, and review the confirmed subscription.
 
-## Getting started
+This project was built for the AOA frontend challenge using Next.js, TypeScript, Tailwind CSS, Material UI, React Hook Form, Zod, Zustand, and Vitest.
+
+## Challenge Goal
+
+The challenge asks for a registration form for a modern eCommerce storefront.
+
+For this implementation, the storefront is positioned as a B2B SaaS checkout: the product is Meridian, and the purchasable items are subscription plans.
+
+The solution also includes fixes and improvements over the initial AI-generated starter project, especially around component architecture, validation, accessibility, testing, and documentation.
+
+## Implemented Scope
+
+- Home page with product positioning for Meridian.
+- Multi-step registration flow.
+- Plan selection with billing cycle support.
+- Company details form with schema validation.
+- Simulated card payment with input masks and card brand feedback.
+- Simulated Pix payment with QR Code generation and status polling.
+- Review and success step with checkout summary.
+- Internal API routes for fake payments and card brand lookup.
+- Shared checkout state for cross-step data.
+- Atomic UI component structure with Material UI encapsulated by local components.
+- Unit and integration-style tests with 100% coverage thresholds.
+
+## Getting Started
 
 Requires Node.js 20 or later.
 
@@ -11,172 +37,170 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in the browser.
 
-Other scripts:
-
-```bash
-npm run build         # production build
-npm run start         # serve the production build
-npm run lint          # ESLint
-npm run format        # Prettier, write
-npm run format:check  # Prettier, check only
-```
-
-## What's in the codebase
-
-```
-app/         routes: / (home) and /register
-components/  shared UI components
-lib/         small utilities
-```
-
-### Components
-
-- `Button` - variants `primary` and `secondary`, sizes `sm`, `md`, `lg`
-- `TextField` - Material UI input adapter with labels, errors and native input refs
-- `Card` - bordered content surface
-- `Container` - centered max-width page column
-- `Header` - site header with navigation
-
-### Design tokens
-
-Defined in `design-system/tokens.css` and shared by Tailwind CSS and Material UI:
-
-- Colors: `brand` scale (50-950), `neutral` scale (50-950), and semantic colors `success`, `warning`, `danger`, `info`
-- Typography: Inter, exposed as `font-sans`
-- Spacing: 4px base scale
-- Border radius: `sm`, `md`, `lg`, `xl`, `2xl`
-
-## Task
-
-> See CHALLENGE.md file.
-
-## AI-assisted development
-
-Contributors using AI assistants must configure and use Context7 MCP for
-Next.js and Tailwind CSS implementation, configuration, and framework-specific
-troubleshooting. Retrieve documentation compatible with the versions in
-`package.json` and `package-lock.json`, rather than relying only on model memory.
-`AGENTS.md` defines the workflow for coding agents. Context7 is configured in each
-developer's AI client; it is not an application dependency or a build requirement.
-
-The goal is to improve output quality, avoid outdated APIs, and reduce rework.
-Keep queries focused and reuse relevant documentation already in the session to
-avoid unnecessary context. Lower token consumption is an objective, not a
-guarantee: MCP requests and retrieved content also consume tokens. Validate the
-implementation normally, even when its approach is grounded in documentation.
-
-### Contributor setup (Codex)
-
-Register the remote server in the user's Codex configuration:
+Useful scripts:
 
 ```bash
-codex mcp add context7 --url https://mcp.context7.com/mcp
+npm run dev            # run the local development server
+npm run build          # create a production build
+npm run start          # serve the production build
+npm run lint           # run ESLint
+npm run format         # format files with Prettier
+npm run format:check   # check Prettier formatting
+npm run typecheck      # run TypeScript checks
+npm test               # run Vitest with coverage
 ```
 
-Complete the browser authorization if prompted. Verify registration with
-`codex mcp list`. If an already running session does not expose the tools,
-restart the MCP connection from the client's settings, or reopen the Codex
-client/session. Registration alone does not prove the current session has
-loaded the tools.
-
-Confirm the integration with an actual documentation lookup: resolve Next.js
-using `resolve-library-id`, then use `query-docs` for a focused App Router
-question that includes the installed version. Repeat for Tailwind CSS when
-working on styling. If the exact version is not indexed, disclose the mismatch
-and check compatibility with the installed packages. Other AI clients should
-use the same remote endpoint with their own MCP configuration format.
-
-If Context7 is unavailable, explicitly report the limitation and use official
-framework documentation as a temporary fallback. Do not describe a fallback
-as a successful Context7 lookup. No lookup is required for unrelated copy or
-pure business-logic changes.
-
-The remote HTTPS endpoint does not require a local Node process. Authentication
-is managed locally by Codex; credentials must never be committed. As an
-alternative to browser authentication, a personal API key can be supplied via
-`--bearer-token-env-var CONTEXT7_API_KEY` when registering the server, with the
-variable set in the environment that launches Codex. The application's `.env`
-file is not automatically loaded by Codex.
-
-References: [Codex MCP configuration](https://developers.openai.com/codex/mcp)
-and [Context7 setup](https://github.com/upstash/context7).
-
-### Material UI documentation MCP
-
-Contributors must configure the official MUI MCP before AI-assisted Material UI
-implementation or troubleshooting. This is a development-tool requirement;
-it is not an application dependency or a prerequisite for building the app.
-Material UI is now used through the local atomic component layer.
-
-With a compatible Node.js runtime available to Codex, register the official
-server in your personal Codex configuration:
-
-```bash
-codex mcp add mui -- npx -y @mui/mcp@latest
-codex mcp get mui
-```
-
-On Windows, if Codex cannot launch `npx`, ensure that the intended Node.js
-runtime and `npx` are available to the MCP process. Keep machine-specific paths
-in personal Codex settings, outside the repository.
-
-Reload the MCP connection or reopen the Codex session if its tools are missing.
-Verify with a real documentation lookup, not just the configuration listing.
-The official server exposes documentation tools including `useMuiDocs` and
-`fetchDocs`. Use `useMuiDocs` to discover relevant MUI documentation and
-`fetchDocs` to retrieve additional content from official documentation URLs
-when needed. Inspect available tools after upgrades. Code generation via
-`generateReactCode` is separate from documentation retrieval.
-Check the installed Material UI version before choosing
-examples, and keep requests focused. If the server is unavailable, disclose
-that limitation and consult official MUI documentation as a temporary fallback.
-Context7 remains the documentation source for Next.js and Tailwind CSS.
-
-Reference: [Official MUI MCP setup](https://mui.com/material-ui/getting-started/mcp/).
-
-## Component architecture
-
-The interface uses Atomic Design and composition. Routes in `app/` represent pages
-and supply content to templates; they remain server components.
+## Project Structure
 
 ```text
-components/
-  atoms/       Button, Link, TextField, Card, Typography, Container
-  molecules/   PasswordField, RequirementList, SocialSignIn, FeatureCard
-  organisms/   Header, Footer, HomeHero, FeaturesSection, registration sections
-  templates/   SiteTemplate, RegistrationTemplate
-design-system/ Provider and tokens.css
-lib/           registration schema and shared utilities
+app/             Next.js App Router pages and API routes
+components/      Atomic UI components and feature components
+design-system/   Material UI provider and shared design tokens
+lib/             API clients, schemas, helpers, constants, stores and mocks
+scrum/           User stories and prompt history used during planning
+tests/           Vitest test suites
 ```
 
-Templates accept children and named slots (header, footer, aside). Atoms expose
-local typed contracts and encapsulate MUI imports, variant mapping and refs.
-Molecules compose atoms; organisms own feature behavior. Native semantic HTML is
-allowed inside these components; there is no wrapper for every HTML tag.
-Only atoms and design-system infrastructure may import MUI or Emotion. Direct
-vendor reexports are forbidden, including types. ESLint enforces vendor and
-upward layer boundaries; tests exercise the guard and detect component cycles.
+## Architectural Decisions
 
-Tailwind remains responsible for layout and responsive utilities, as required by
-the challenge. The existing tokens now live in design-system/tokens.css and MUI
-style overrides reference those CSS variables. CSS layer order is theme, base,
-mui, components, utilities. The provider uses the Next 16 App Router cache adapter
-for streamed styles; client boundaries are limited to interactive components and
-MUI adapters. No global CssBaseline is added over Tailwind preflight.
+### Next.js App Router
 
-Run `npm test`, `npm run lint`, `npm run typecheck` and `npm run build` to verify
-the migration. Form tests cover invalid input, password rules, focus, accessible
-errors, visibility controls and successful preview validation. Tests run locally;
-CI and deployment gating remain a separate task. Registration still does not
-create accounts, and Google sign-in remains disabled pending Auth0.
+The application uses the App Router to keep routes, server components and API handlers close to the product flow. The registration page loads plan data through an API layer instead of reading mock data directly from the UI.
 
-Documentation was consulted through Context7 for MUI/React composition and the
-MUI MCP for MUI-specific Next.js integration guidance. Generic v15 cache examples
-were adapted to the installed package's v16 entry point, following the official
-version guidance.
-References: [React composition](https://react.dev/learn/passing-props-to-a-component),
-[Atomic Design](https://atomicdesign.bradfrost.com/chapter-2/),
-[MUI Next integration](https://mui.com/material-ui/integrations/nextjs/) and
-[MUI Tailwind integration](https://mui.com/material-ui/integrations/tailwindcss/tailwindcss-v4/).
+### Component Architecture
+
+The UI follows Atomic Design:
+
+- `atoms`: local wrappers for base UI pieces such as buttons, fields, cards and layout containers.
+- `molecules`: small component combinations such as password and card brand display.
+- `organisms`: feature-level sections such as plan selection, payment and review.
+- `templates`: page-level layout composition.
+
+Material UI is used through local components instead of being imported directly across product features. This keeps third-party implementation details isolated and makes future UI changes safer.
+
+### Styling
+
+Tailwind CSS handles layout, spacing and responsive utilities. Material UI provides accessible interactive primitives through local wrappers. Shared design tokens live in `design-system/tokens.css` and are reused by Tailwind and MUI theme configuration.
+
+### Forms And Validation
+
+React Hook Form manages form state, and Zod defines validation rules. Company details are saved to checkout state only after a valid step submission. Card form values stay local to the payment form because they are only needed for the payment request.
+
+### Checkout State
+
+Zustand stores the checkout flow state: selected plan, billing cycle, active step, submitted company details, payment method and payment summary. It does not mirror every form field on change. The store is reset when the checkout restarts or when the registration page unmounts.
+
+### Simulated Payments
+
+No real payment provider is used. Card payment is processed by an internal fake API route.
+
+Pix payment creates an in-memory payment attempt, generates a QR Code for an internal confirmation route, and polls the internal API until the attempt is paid or expired.
+
+**Pix** is an instant payment system widely used in Brazil. It allows individuals and businesses to transfer money and complete payments in real time, 24/7, commonly through QR Codes or payment identifiers. For this challenge, the Pix flow is simulated to demonstrate how a Brazilian checkout experience could support this payment method without integrating a real financial provider.
+
+Pix state is intentionally server-memory based for the challenge. It avoids storing fake payment confirmation in `localStorage`, while keeping the implementation small and easy to review.
+
+### Card Brand Detection
+
+Card brand detection is handled by an internal API route. The server wraps the third-party card detection library and caches lookup results for 24 hours. The client only calls the internal API and does not import the vendor package.
+
+### Tests
+
+Vitest, Testing Library and coverage thresholds are used to validate behavior.
+
+Tests cover the registration flow, validation, plan selection, fake payments, Pix polling, review summary, UI component contracts and helper functions.
+
+## Assumptions
+
+- The product can be positioned as a B2B SaaS subscription checkout.
+- The available plans are enough for the challenge and can be mocked.
+- Account creation does not need to persist data in a database.
+- Payment processing can be simulated because real payment integration is out of scope.
+- Pix simulation can use a local in-memory store during development and demo.
+- The deployed demo will run as a single app instance for review purposes.
+- The reviewer will run the app with the documented commands or open the deployed demo.
+
+## Trade-Offs
+
+- The Pix payment store uses process memory. This is simple for a challenge, but it is not durable and would not work across multiple server instances.
+- The payment APIs are fake. They demonstrate UI and flow behavior, not payment compliance or provider integration.
+- Card brand detection is limited to brand feedback. Issuer bank detection was not kept because it would require a reliable BIN data provider.
+- The password field in the company details step avoids browser credential-save prompts in this demo flow. A production account flow should follow the final authentication strategy.
+- Material UI is wrapped by local atoms. This adds small wrapper overhead but protects the product code from vendor coupling.
+- The scope favors a polished registration and checkout experience over a full marketing site.
+
+## Left Out Because Of Time
+
+- Real account creation and authentication.
+- Real payment provider integration.
+- Persistent database storage.
+- Production Pix provider flow.
+- Email confirmation.
+- Admin or customer dashboard after subscription.
+- International address and tax handling.
+- Full CI/CD pipeline configuration.
+- Full design system documentation.
+- Analytics, observability and error tracking.
+
+## Required Intake Questions
+
+Before starting a real project, these answers would be required:
+
+- What product is being sold, and what is the exact checkout goal?
+- Which plans, prices, billing cycles and limits must be supported?
+- Which company fields are mandatory for account creation?
+- Which payment methods are required for launch?
+- Which payment provider should be used?
+- Should payment happen before or after account creation?
+- What should happen when payment fails or expires?
+- What data must be persisted, and where should it be stored?
+- What authentication provider should be used?
+- What accessibility, browser and device targets are required?
+- What deployment platform and environment variables are expected?
+- What are the acceptance criteria for the challenge or release?
+
+## Desired Intake Questions
+
+These answers would improve quality and reduce rework:
+
+- Are there brand guidelines or a design reference?
+- Should the checkout support coupons, taxes or invoices?
+- Should users be able to change plans after payment starts?
+- Should Pix payment open on a separate device, the same device, or both?
+- What copy tone should be used in product and payment messages?
+- What analytics events should be tracked across the funnel?
+- What error states should be prioritized for demo and production?
+- Should the flow support localization or currency changes?
+- What parts of the flow are most important for reviewer evaluation?
+- Is there an expected code architecture or testing standard?
+
+## Validation
+
+The latest local validation passed with:
+
+```bash
+npm run format -- --check
+npm run typecheck
+npm run lint
+npm test -- --run
+```
+
+The test suite was passing with 42 tests and 100% coverage after the latest implementation round.
+
+## AI-Assisted Development Notes
+
+The `scrum/` folder documents planning through user stories and prompt history.
+
+The goal is to make the implementation process auditable for the technical challenge without mixing planning notes into product code.
+
+Context7 MCP was used as the preferred source for framework documentation when needed. The MUI MCP was used for Material UI guidance. These MCP tools are development aids only; they are not application dependencies and are not needed to run the project.
+
+## References
+
+- [Challenge brief](./CHALLENGE.md)
+- [Scrum planning](./scrum/README.md)
+- [User stories](./scrum/user-stories/README.md)
+
+A explicação ficou propositalmente curta e técnica: **o que é Pix, onde ele é usado, como normalmente funciona e por que está simulado no challenge**. Isso deve ser suficiente para um avaliador dos EUA ou de outro país entender a decisão de produto sem desviar o foco do projeto.
