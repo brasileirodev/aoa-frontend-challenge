@@ -2,6 +2,18 @@
 
 Read CHALLENGE.md and README.md before changing the registration flow.
 
+## Pokémon hands-on continuity
+
+For the Pokémon study, start with [.codex/README.md](.codex/README.md) and
+[the current checkpoint](.codex/docs/continuidade.md). Follow the canonical
+[tutor profile](.codex/agents/pokemon-tutor.md). The learner writes application
+code and tests; review/continue requests do not authorize editing the exercise.
+Explain one step, let the learner implement, then validate actual files.
+Use the repository skills [pokemon-study](.codex/skills/pokemon-study/SKILL.md)
+and [pokemon-review](.codex/skills/pokemon-review/SKILL.md) as appropriate.
+Keep checkpoint documentation current with verified results; never mark proposed
+code or unverified work complete. US-08 remains the acceptance source of truth.
+
 ## Framework documentation
 
 Context7 MCP is required for AI-assisted Next.js and Tailwind CSS work when
