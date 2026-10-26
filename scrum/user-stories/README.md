@@ -15,6 +15,7 @@ implemented, and reviewed in isolation.
 5. `us-05-review-and-success-step/us-05-review-and-success-step.md`
 6. `us-06-product-and-challenge-documentation.md`
 7. `us-07-quality-and-submission-readiness.md`
+8. `us-08-pokedex-explorer.md` — exercício de implementação manual com PokéAPI e referência no Figma.
 
 ## Priority Scale
 
