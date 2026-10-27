@@ -23,6 +23,14 @@ npm run build
 
 ## Descoberta e portabilidade
 
+### Figma no Codex desktop — conexão verificada em 27/10/2026
+
+O plugin Figma já estava instalado e autenticado nesta máquina. A conexão foi validada com a identificação da conta e a leitura de metadados do arquivo `YwhcG3X1sz9Dd8F6b1WnKr`, frame `2:23` (Catálogo / desktop, 1200 × 1272). Não foi necessário adicionar um servidor manual ao `config.toml`. A autenticação é pessoal e não acompanha o Git.
+
+A [documentação oficial de instalação](https://developers.figma.com/docs/figma-mcp-server/remote-server-installation/#codex) recomenda o plugin no aplicativo Codex; o comando `codex mcp add figma --url https://mcp.figma.com/mcp` é a alternativa para o CLI. A ausência dessa entrada na listagem do CLI não invalida a conexão já disponível pelo plugin no aplicativo.
+
+Para implementar a UI, ler a skill `figma-design-to-code` e obter `get_design_context` dos frames/componentes pertinentes antes de escrever a orientação. A verificação de conexão leu somente metadados; não equivale a uma inspeção completa de estilos, assets ou fidelidade visual.
+
 As skills canônicas ficam em `.codex/skills`, conforme solicitado. As entradas em `.agents/skills` permitem descoberta no local de skills de repositório documentado pelo Codex. O AGENTS.md da raiz também aponta para elas. Se a interface não listar as skills, peça explicitamente a leitura do caminho canônico; não dependa de instalações globais desta máquina.
 
 O perfil em `.codex/agents/pokemon-tutor.md` é uma instrução legível, não configuração TOML de subagente. Não instala modelos, plugins ou processos. O tutor e o revisor são papéis do mesmo fluxo de estudo, suficientes para a metodologia atual.

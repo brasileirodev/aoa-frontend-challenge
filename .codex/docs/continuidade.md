@@ -94,6 +94,70 @@ Todos os CA-01 a CA-08 da US, não apenas integração funcionando. Rodar lint, 
 
 ## Registro para a próxima sessão
 
+### Proposta de interpretação de q — 27/10/2026
+
+Próximo incremento manual curto: adicionar `parsePokemonSearch` a `modules/pokemon/routing/query.ts`, retornando undefined para q ausente ou `pokemonIdentifierSchema.safeParse(value)` para q presente. Reutiliza normalização existente e preserva distinção entre ausência, busca válida e busca inválida, incluindo arrays/repetição rejeitados e espaços vazios sem requisição. A presença de q terá precedência sobre page ao conectar à página no incremento seguinte. Context7 Next e Zod consultados. Helper apenas proposto; a busca ainda não consulta Pokémon na página. Nenhum código da aplicação foi alterado nesta orientação.
+
+### Primeira revisão do formulário de busca — 27/10/2026
+
+Formulário implementado e composto abaixo do cabeçalho. action /pokemon, name q e botão submit corretos. TypeScript, ESLint e Prettier passaram no escopo. Pendências por leitura: corrigir `arie-describedby` para `aria-describedby`, pois a orientação não fica associada ao campo; mover o Typography de ajuda para fora do flex dos controles (após o fechamento da div), evitando que seja uma terceira coluna no desktop. `sm:w-35` corresponde aos 140 px pretendidos no tema atual. Nenhuma alteração automática ou validação de navegação no navegador nesta rodada. Página ainda consulta catálogo sem interpretar q, conforme escopo incremental.
+
+### Proposta do formulário de busca — 27/10/2026
+
+Primeiro incremento manual da busca: `PokemonSearchForm.tsx` em organisms usando `next/form` com action /pokemon, campo q com wrapper TextField, submit com Button e orientação associada por aria-describedby; composição abaixo do cabeçalho. Formulário envia GET para a URL em navegação Next, sem fetch no componente. Consulta Context7 confirmou action string/onSubmit; Figma busca desktop 4:10 e mobile 4:159 consultados com screenshots. Nesta etapa somente apresentação e submissão para URL; a página ainda não interpreta q. Normalização, bloqueio de espaços, erros inline, resultado único/404, limpar e prevenção de duplicatas ficam para incrementos seguintes. Código ainda proposto, não implementado.
+
+### Cabeçalho aprovado por código — 27/10/2026
+
+Corrigido `lg:text-[40px]` no h1 da introdução. TypeScript, ESLint e Prettier passaram para cabeçalho/página. Verificação da compilação Tailwind confirmou CSS de 40 px no breakpoint lg (64rem), mantendo text-2xl na base. Composição de marca, tagline e introdução aprovada por leitura; sem medição visual em navegador nesta rodada. A pendência da revisão anterior foi resolvida. Próximo incremento manual: busca exata com submissão explícita, estado na URL e precedência de q sobre page, em pequenas etapas.
+
+### Revisão do cabeçalho — 27/10/2026
+
+`PokemonCatalogHeader` implementado e composto na página; h1 na introdução, marca como parágrafo e tagline hidden/lg:block. TypeScript, ESLint e Prettier do escopo passaram. Pendência antes de avançar: título usa `lg:text-10`, classe sem token `--text-10` no tema e sem CSS gerado na compilação Tailwind 4.3.3 conferida. Orientar `lg:text-[40px]` para os 40 px do Figma. Ao contrário de h-38/max-w-300, a escala de font-size não usa automaticamente o token --spacing. Context7 consultado sobre font-size e tokens. Não houve edição automática de código ou revisão visual no navegador. Busca ainda não iniciada.
+
+### Proposta de cabeçalho e introdução — 27/10/2026
+
+Próximo incremento manual: `PokemonCatalogHeader.tsx` em organisms, compondo marca e tagline (oculta abaixo de lg), introdução com h1 de 24 px/mobile e 40 px/desktop, descrição de 16 px e espaçamentos dos frames. Substituir o h1 isolado atual da página pelo componente e aplicar fundo neutral-50, py-6/lg:py-12 e espaço entre blocos. Figma consultado com contexto e screenshots dos nós desktop 4:4/4:7 e mobile 4:154/4:156; Context7 consultado para responsividade Tailwind e composição de Server Components. Código somente proposto, ainda não implementado nem validado. Busca, paginação e detalhe continuam pendentes.
+
+### Container wide aprovado por código — 27/10/2026
+
+Aluno implementou `size?: "default" | "wide"` e aplicou `size="wide"` na página Pokémon. TypeScript, ESLint e Prettier dos dois arquivos passaram. Verificação avulsa confirmou comportamento default/explicit default preservado, classes wide, children e className. Compilação Tailwind confirmou `max-w-300` como `300 × --spacing` (1200 px no tema atual), com px-6 e lg:px-12. A troca de max-w-[1200px] por max-w-300 é válida. Não houve medição visual em navegador nesta revisão. Próximo incremento manual: cabeçalho e introdução do catálogo conforme Figma.
+
+### Grade aprovada por código e proposta de largura — 27/10/2026
+
+`PokemonGrid.tsx` implementado pelo aluno com 1/2/3 colunas, gap-6 e composição dos cards; página usa a grade e mantém o fetch. TypeScript, ESLint e Prettier do escopo passaram. Sem validação visual em navegador nesta rodada. Próximo incremento manual proposto: adicionar `size?: "default" | "wide"` ao Container compartilhado, preservando max-w-5xl por padrão e permitindo max-w-[1200px] com px-6/lg:px-12 para Pokémon; página usará size wide. Proposta ainda não implementada. Figma desktop/mobile e Context7 Tailwind consultados: alvo em 1200 px com conteúdo 1104 px e em 390 px com conteúdo 342 px. Após isso, seguir para cabeçalho e introdução do catálogo.
+
+### Revisão após remoção do import — 27/10/2026
+
+Import `Image` sem uso removido da página. TypeScript e ESLint focado passaram sem avisos. Apenas Prettier continua reprovando `PokemonCard.tsx` e `app/pokemon/page.tsx`; orientar comando de formatação limitado a esses dois arquivos. Estrutura do componente aprovada por leitura; comparação visual ainda pendente. Sem alteração automática de código.
+
+### Terceira revisão do PokemonCard — 27/10/2026
+
+Confirmado: link movido para fora do contêiner dos tipos e altura das etiquetas corrigida. Estrutura do card aprovada por leitura do código. Ainda há import `Image` sem uso na primeira linha de `app/pokemon/page.tsx` e diferenças de formatação nos dois arquivos; TypeScript passou, ESLint apresentou somente esse aviso e Prettier retornou 1. Sem verificação visual nesta rodada e sem edição de código pelo assistente.
+
+### Segunda revisão do PokemonCard — 27/10/2026
+
+`h-[30px]` foi corrigido, e as classes de tipografia/alinhamento foram adicionadas ao link. Ainda pendentes nos arquivos salvos: mover o link para depois do fechamento do contêiner dos tipos e remover o import `Image` não usado da página. TypeScript passou; ESLint mantém um aviso; Prettier mantém pendência nos dois arquivos. Etapa ainda não aprovada; sem alteração automática de código.
+
+### Primeira revisão do PokemonCard — 27/10/2026
+
+O aluno implementou `PokemonCard.tsx` e o conectou à página por props. A composição usa os wrappers compartilhados e mantém a consulta na página server. Pendências: `h-[30x]` nas etiquetas gera CSS `height: 30x`, inválido, devendo ser `h-[30px]`; o link está dentro do flex dos tipos, devendo ficar depois desse contêiner, com as classes de alinhamento/tipografia propostas; remover import `Image` não usado de `app/pokemon/page.tsx`. TypeScript passou; ESLint sem erros, com um aviso de import não usado; Prettier apontou os dois arquivos. `h-38` e `wrap-break-word` são válidos no Tailwind 4.3.3 instalado (confirmados na compilação CSS avulsa); `h-38` representa 152 px com o token atual. Sem edição de código, testes Pokémon versionados ou validação visual em navegador nesta revisão. Etapa ainda não aprovada.
+
+### Padding do Card aprovado — 27/10/2026
+
+Confirmado no código: `padding === "normal" ? "p-6" : "p-4"`, com padrão `normal`. Verificação avulsa em memória conferiu default/normal com 24 px e compact com 16 px, uma única classe de padding, preservação de children, className, rounded-xl e variant outlined. Scanner Tailwind detectou as classes completas. TypeScript sem emissão/cache incremental, ESLint e Prettier do componente passaram. Essa validação não incluiu comparação visual no navegador. As pendências das duas revisões anteriores abaixo foram resolvidas. Próximo incremento manual: conteúdo de `PokemonCard.tsx` com dados recebidos por props, conforme o Figma.
+
+### Segunda revisão do padding — 27/10/2026
+
+A interpolação parcial foi removida, mas a condição agora usa `normal → p-4` e `compact → p-2` (16 px e 8 px). Isso altera o padrão de 24 px dos consumidores AOA e não entrega os 16 px esperados no card Pokémon compacto. Corrigir manualmente para `padding === "normal" ? "p-6" : "p-4"`. A verificação focada rejeitou a ausência de `p-6`; TypeScript, ESLint e Prettier passaram. Etapa ainda não aprovada; nenhuma alteração automática no componente.
+
+### Revisão do padding do Card — 27/10/2026
+
+O aluno adicionou `padding?: "normal" | "compact"`, com padrão `normal`, em `shared/components/atoms/Card.tsx`. Pendência antes de aprovar: o className usa interpolação parcial (`p-${...}`); o scanner Tailwind instalado, focado nesse arquivo, não detectou `p-4` nem `p-6`. Consulta MCP Context7 confirmou a necessidade de classes completas no código-fonte. Orientar substituir pela seleção `padding === "normal" ? "p-6" : "p-4"`, mantendo `rounded-xl` separado. TypeScript e ESLint focado passaram; isso não comprova geração das classes CSS. Não foi alterado código do aluno. O arquivo `PokemonCard.tsx` existe vazio e ainda não deve ser marcado como implementado.
+
+### Conexão Figma — 27/10/2026
+
+Plugin Figma do Codex desktop já instalado e autenticado; identificação da conta e leitura do frame Catálogo / desktop (`2:23`) no arquivo do projeto passaram. Não foi criada uma conexão MCP manual duplicada. Acesso ao design confirmado; apenas metadados foram consultados nesta validação. Antes da próxima orientação de UI, usar a skill de design para código e consultar o contexto de design dos nós pertinentes. Nenhum código da aplicação ou arquivo do Figma foi alterado nesta verificação.
+
 ### Revisão da normalização e aliases — 27/10/2026
 
 O aluno implementou `modules/pokemon/routing/query.ts` com `normalizePokemonPage`. Revisão funcional aprovada: 20 cenários avulsos em memória passaram (ausência, vazio, espaços, texto, número parcialmente válido, zero, negativo, fracionário, arrays, zeros à esquerda, página 500 e inteiros/offsets inseguros). Nenhum teste unitário Pokémon foi criado. TypeScript e ESLint focado passaram. Prettier apontou formatação pendente somente no arquivo da função dentro do escopo checado; orientar salvar com o formatador. Os oito aliases, incluindo o legado, tiveram seus destinos conferidos com a resolução do TypeScript; os dois testes de arquitetura passaram sem cobertura. A checagem avulsa foi corrigida para comparar caminhos normalizados no Windows; isso não exigiu alteração na aplicação.
