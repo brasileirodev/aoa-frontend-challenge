@@ -34,7 +34,7 @@ mostra alternativas de apresentação; elas não devem aparecer simultaneamente 
 aplicação. As anotações desse quadro orientam o desenvolvimento e não são textos
 obrigatórios da interface.
 
-Usar Inter, as cores e os tokens já presentes em `design-system/tokens.css`.
+Usar Inter, as cores e os tokens já presentes em `shared/design-system/tokens.css`.
 Manter a hierarquia, o espaçamento, a legibilidade e os comportamentos do design.
 Os tipos aparecem como etiquetas informativas em azul, sem interação de filtro.
 Os dados do Figma exemplificam a resposta real da API; não devem virar mocks de
@@ -173,15 +173,17 @@ navegador também deve manter uma navegação coerente.
 
 Seguir os padrões observados no repositório, mantendo responsabilidades claras:
 
-| Área existente          | Responsabilidade esperada                                                         |
-| ----------------------- | --------------------------------------------------------------------------------- |
-| `app/`                  | Rotas, composição e integração com a navegação                                    |
-| `components/atoms/`     | Reutilizar Button, TextField, Chip, Card, Typography e outros wrappers aplicáveis |
-| `components/molecules/` | Combinações pequenas e reutilizáveis, como o card de Pokémon                      |
-| `components/organisms/` | Busca, grade, paginação e seção de detalhes                                       |
-| `components/templates/` | Composição estrutural das páginas, quando necessário                              |
-| `lib/api/`              | HTTP, contratos e normalização dos dados da PokéAPI                               |
-| `tests/`                | Testes unitários e de integração de comportamento                                 |
+| Área existente                          | Responsabilidade esperada                                                         |
+| --------------------------------------- | --------------------------------------------------------------------------------- |
+| `app/`                                  | Rotas, composição e integração com a navegação                                    |
+| `shared/components/atoms/`              | Reutilizar Button, TextField, Chip, Card, Typography e outros wrappers aplicáveis |
+| `modules/pokemon/components/molecules/` | Combinações pequenas e reutilizáveis, como o card de Pokémon                      |
+| `modules/pokemon/components/organisms/` | Busca, grade, paginação e seção de detalhes                                       |
+| `modules/pokemon/components/templates/` | Composição estrutural das páginas, quando necessário                              |
+| `modules/pokemon/api/`                  | HTTP, contratos e normalização dos dados da PokéAPI                               |
+| `tests/`                                | Testes unitários e de integração de comportamento                                 |
+
+A estrutura foi reorganizada por projeto de portfólio em 27/10/2026, por solicitação de Marcel. Modelos Pokémon ficam em `modules/pokemon/models`; interpretação da URL ficará em `modules/pokemon/routing`. O módulo Pokémon não depende da AOA. Essa mudança de localização preserva os comportamentos e critérios de aceite.
 
 Os nomes de novos arquivos e a decomposição final são decisões suas. A tabela
 indica responsabilidades, não uma obrigação de criar cada componente sugerido.
@@ -197,6 +199,8 @@ cliente ou rota interna é sua, desde que respeite a separação de responsabili
 e os comportamentos exigidos. Não é necessário adicionar backend externo.
 
 ### CA-08 — Testes e definição de pronto
+
+Nota de estudo, 27/10/2026: Marcel decidiu adiar a escrita de testes unitários Pokémon enquanto explora a implementação. Os critérios abaixo continuam como referência da entrega final, mas não são pré-requisito para avançar cada etapa de aprendizado. Até a retomada dos testes formais, usar revisão e verificações pontuais.
 
 Os testes automatizados usam respostas controladas, sem depender da disponibilidade
 da PokéAPI. Incluir casos de sucesso e falha da integração, paginação nas bordas,

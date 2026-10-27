@@ -2,33 +2,35 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import Home from "@/app/page";
-import RegisterPage, {
-  metadata as registerMetadata,
-} from "@/app/register/page";
-import { Button } from "@/components/atoms/Button";
-import { Card } from "@/components/atoms/Card";
-import { Chip } from "@/components/atoms/Chip";
-import { Container } from "@/components/atoms/Container";
-import { Link } from "@/components/atoms/Link";
-import { SelectableCard } from "@/components/atoms/SelectableCard";
-import { TextField } from "@/components/atoms/TextField";
-import { ToggleButtonGroup } from "@/components/atoms/ToggleButtonGroup";
-import { Typography } from "@/components/atoms/Typography";
-import { CardBrandMark } from "@/components/molecules/CardBrandMark";
-import { FeatureCard } from "@/components/molecules/FeatureCard";
-import { PasswordField } from "@/components/molecules/PasswordField";
-import { RequirementList } from "@/components/molecules/RequirementList";
-import { FeaturesSection } from "@/components/organisms/FeaturesSection";
-import { Footer } from "@/components/organisms/Footer";
-import { Header } from "@/components/organisms/Header";
-import { HomeHero } from "@/components/organisms/HomeHero";
-import { RegistrationBenefits } from "@/components/organisms/RegistrationBenefits";
-import { RegistrationPanel } from "@/components/organisms/RegistrationPanel";
-import { RegistrationTemplate } from "@/components/templates/RegistrationTemplate";
-import { SiteTemplate } from "@/components/templates/SiteTemplate";
-import { getBillingCycleLabel, getPlanPrice, type Plan } from "@/lib/api/plans";
-import { cn } from "@/lib/cn";
+import Home from "@app/page";
+import RegisterPage, { metadata as registerMetadata } from "@app/register/page";
+import { Button } from "@components/atoms/Button";
+import { Card } from "@components/atoms/Card";
+import { Chip } from "@components/atoms/Chip";
+import { Container } from "@components/atoms/Container";
+import { Link } from "@components/atoms/Link";
+import { SelectableCard } from "@components/atoms/SelectableCard";
+import { TextField } from "@components/atoms/TextField";
+import { ToggleButtonGroup } from "@components/atoms/ToggleButtonGroup";
+import { Typography } from "@components/atoms/Typography";
+import { CardBrandMark } from "@aoa/checkout/components/molecules/CardBrandMark";
+import { FeatureCard } from "@aoa/marketing/components/molecules/FeatureCard";
+import { PasswordField } from "@components/molecules/PasswordField";
+import { RequirementList } from "@components/molecules/RequirementList";
+import { FeaturesSection } from "@aoa/marketing/components/organisms/FeaturesSection";
+import { Footer } from "@aoa/marketing/components/organisms/Footer";
+import { Header } from "@aoa/marketing/components/organisms/Header";
+import { HomeHero } from "@aoa/marketing/components/organisms/HomeHero";
+import { RegistrationBenefits } from "@aoa/checkout/components/organisms/RegistrationBenefits";
+import { RegistrationPanel } from "@aoa/checkout/components/organisms/RegistrationPanel";
+import { RegistrationTemplate } from "@aoa/checkout/components/templates/RegistrationTemplate";
+import { SiteTemplate } from "@aoa/marketing/components/templates/SiteTemplate";
+import {
+  getBillingCycleLabel,
+  getPlanPrice,
+  type Plan,
+} from "@aoa/checkout/models/plans";
+import { cn } from "@shared/utils/cn";
 
 const plan: Plan = {
   id: "starter",

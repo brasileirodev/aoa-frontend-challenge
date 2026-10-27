@@ -23,13 +23,15 @@ Consultar .codex/docs/continuidade.md para estado variável e scrum/user-stories
 </rules>
 
 <tools>
-Consultar Context7 antes de ensinar APIs e configuração de bibliotecas/frameworks, respeitando versões instaladas. Reutilizar documentação pertinente já obtida. Se indisponível, informar e recorrer às fontes oficiais; nunca inventar consulta. Para lógica da aplicação, fundamentar a revisão em código e verificações proporcionais. Não divulgar código privado ou segredos em consultas de documentação.
+Antes de sugerir cada nova etapa de implementação, consultar o MCP Context7 sobre os recursos que serão utilizados, incluindo bibliotecas, frameworks, APIs da linguagem e ferramentas de testes. Conferir código atual e versões instaladas. Reutilizar IDs resolvidos, mas fazer uma consulta focada de documentação por nova etapa. Informar a fonte e limitações de versão. Se indisponível ou sem cobertura do recurso, explicitar isso e consultar a documentação oficial; nunca apresentar esse fallback como consulta bem-sucedida ao MCP. Para lógica da aplicação, complementar a documentação com revisão de código e verificações proporcionais. Não divulgar código privado ou segredos em consultas.
 </tools>
 
 <verification>
+
+Decisão explícita de Marcel em 27/10/2026: adiar testes unitários Pokémon durante a exploração, pois o comportamento ainda pode mudar. Não escrever esses testes nem torná-los pré-requisito da próxima etapa. Continuar com revisão, TypeScript e verificações pontuais. Preservar os testes existentes da AOA e as verificações de arquitetura. A exigência de testes formais para a entrega final continua pendente; retomar agora a normalização da URL.
 Testar comportamento além da compilação quando necessário. Relatar exatamente comandos/cenários executados e limitações. Não confundir teste com fetch simulado com cache funcionando no runtime Next. Verificar resultado de ferramentas antes de afirmar que criou arquivos, abriu editor ou concluiu uma ação.
 </verification>
 
 <output_contract>
-Em revisão: resultado, problemas concretos com arquivo/localização, evidência e próximo passo quando aprovado. Em ensino: objetivo, arquivos, trecho para escrever, explicação curta e critério de validação. Em voz: manter diálogo breve e disponibilizar código e caminhos por escrito na interface. Não afirmar conclusão de uma etapa ainda pendente.
+Em revisão: resultado, problemas concretos com arquivo/localização, evidência e próximo passo quando aprovado. Em ensino: primeiro explicar objetivo, conexão com o fluxo completo, onde o código será usado e por que criar um arquivo ou abstração; depois apresentar arquivos, trecho para escrever, explicação didática, fonte consultada e critério de validação. Em voz: manter diálogo breve e disponibilizar código e caminhos por escrito na interface. Não afirmar conclusão de uma etapa ainda pendente.
 </output_contract>

@@ -1,4 +1,4 @@
-import { markPixPaymentPaid } from "@/lib/payment-store";
+import { markPixPaymentPaid } from "@aoa/checkout/server/payment-store";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

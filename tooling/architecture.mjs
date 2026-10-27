@@ -1,4 +1,4 @@
-import path from "node:path";
+import { resolveLocalImport } from "./import-paths.mjs";
 const layers = ["atoms", "molecules", "organisms", "templates"];
 function layer(file) {
   return layers.findIndex((l) => file.includes("/components/" + l + "/"));
@@ -12,6 +12,12 @@ const architecture = {
       upward:
         "Atomic components cannot depend on higher layers or application routes.",
       public: "Do not re-export third-party UI contracts.",
+      context: "Portfolio contexts must not depend on another project module.",
+      shared: "Shared code must not depend on project modules or routes.",
+      model:
+        "Models must not depend on UI, state, services, API or server code.",
+      server:
+        "UI and hooks must use models or APIs, not server implementations.",
     },
   },
   create(context) {
@@ -23,19 +29,36 @@ const architecture = {
       const vendor = /^@(mui|emotion)\//.test(source);
       if (vendor && (!allowed || node.type.startsWith("Export")))
         context.report({ node, messageId: allowed ? "public" : "vendor" });
-      const target = source.startsWith("@/")
-        ? path.resolve(context.cwd, source.slice(2))
-        : source.startsWith(".")
-          ? path.resolve(path.dirname(context.filename), source)
-          : "";
+      const target = resolveLocalImport(source, context.filename);
       const normalized = target.replaceAll("\\", "/");
+      const fromContext = file.match(/\/modules\/([^/]+)\//)?.[1];
+      const toContext = normalized.match(/\/modules\/([^/]+)\//)?.[1];
+      if (fromContext && toContext && fromContext !== toContext)
+        context.report({ node, messageId: "context" });
+      if (
+        file.includes("/shared/") &&
+        (toContext || normalized.includes("/app/"))
+      )
+        context.report({ node, messageId: "shared" });
+      if (
+        fromContext &&
+        file.includes("/models/") &&
+        /\/(components|hooks|state|services|api|server)\//.test(normalized)
+      )
+        context.report({ node, messageId: "model" });
+      if (
+        fromContext &&
+        /\/(components|hooks)\//.test(file) &&
+        normalized.includes("/server/")
+      )
+        context.report({ node, messageId: "server" });
       const from = layer(file);
       const to = layer(normalized + "/");
       if (
         from >= 0 &&
         (to > from ||
           normalized.includes("/app/") ||
-          (from < 2 && normalized.includes("/lib/registration-schema")))
+          (from < 2 && normalized.includes("/models/registration-schema")))
       )
         context.report({ node, messageId: "upward" });
     }

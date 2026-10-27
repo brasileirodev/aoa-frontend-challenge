@@ -4,6 +4,7 @@ import type { Rule } from "eslint";
 import tsParser from "@typescript-eslint/parser";
 import fs from "node:fs";
 import path from "node:path";
+import { resolveLocalImport } from "../tooling/import-paths.mjs";
 it("enforces vendor imports, reexports and layer direction", async () => {
   const architectureRule = (await import("../tooling/architecture.mjs").then(
     (module) => module.default,
@@ -31,6 +32,52 @@ it("enforces vendor imports, reexports and layer direction", async () => {
     ],
   });
   for (const [file, code, bad] of [
+    [
+      "modules/pokemon/api/example.ts",
+      'import { getPlans } from "@aoa/checkout/services/plans";',
+      true,
+    ],
+    [
+      "modules/pokemon/api/example.ts",
+      'import { getPlans } from "@modules/aoa/checkout/services/plans";',
+      true,
+    ],
+    [
+      "shared/utils/example.ts",
+      'import type { Pokemon } from "@pokemon/models/pokemon";',
+      true,
+    ],
+    ["shared/utils/example.ts", 'import Page from "@app/page";', true],
+    [
+      "modules/pokemon/models/example.ts",
+      'import { state } from "@pokemon/state/example";',
+      true,
+    ],
+    [
+      "modules/aoa/checkout/hooks/example.ts",
+      'import { getPixPayment } from "@aoa/checkout/server/payment-store";',
+      true,
+    ],
+    [
+      "modules/pokemon/components/organisms/Example.tsx",
+      'import { Button } from "@components/atoms/Button";',
+      false,
+    ],
+    [
+      "modules/pokemon/components/organisms/Example.tsx",
+      'import { cn } from "@shared/utils/cn";',
+      false,
+    ],
+    [
+      "shared/components/atoms/Example.tsx",
+      'import { Provider } from "@design-system/Provider";',
+      false,
+    ],
+    [
+      "shared/components/atoms/Example.tsx",
+      'import { Field } from "@components/molecules/PasswordField";',
+      true,
+    ],
     ["app/page.tsx", 'import Button from "@mui/material/Button";', true],
     [
       "components/molecules/Example.tsx",
@@ -54,12 +101,12 @@ it("enforces vendor imports, reexports and layer direction", async () => {
     ],
     [
       "components/organisms/Example.tsx",
-      'import {Button} from "@/components/atoms/Button";',
+      'import {Button} from "@/shared/components/atoms/Button";',
       false,
     ],
     [
       "components/atoms/Example.tsx",
-      'export * from "@/components/organisms/Header";',
+      'export * from "@/modules/aoa/marketing/components/organisms/Header";',
       true,
     ],
     [
@@ -76,6 +123,42 @@ it("enforces vendor imports, reexports and layer direction", async () => {
       false,
     ],
     ["app/types.ts", 'type Button = import("@mui/material/Button");', true],
+    [
+      "modules/pokemon/api/example.ts",
+      'import { getPlans } from "@/modules/aoa/checkout/services/plans";',
+      true,
+    ],
+    [
+      "shared/utils/example.ts",
+      'import type { Pokemon } from "@/modules/pokemon/models/pokemon";',
+      true,
+    ],
+    ["shared/utils/example.ts", 'import Page from "@/app/page";', true],
+    [
+      "modules/pokemon/models/example.ts",
+      'import { useCheckoutStore } from "@/modules/pokemon/state/example";',
+      true,
+    ],
+    [
+      "modules/aoa/checkout/components/organisms/Example.tsx",
+      'import { getPixPayment } from "@/modules/aoa/checkout/server/payment-store";',
+      true,
+    ],
+    [
+      "modules/aoa/checkout/hooks/example.ts",
+      'import type { PixPayment } from "@/modules/aoa/checkout/models/pix-payment";',
+      false,
+    ],
+    [
+      "modules/aoa/checkout/components/organisms/Example.tsx",
+      'import { Button } from "@/shared/components/atoms/Button";',
+      false,
+    ],
+    [
+      "modules/aoa/checkout/components/organisms/Example.tsx",
+      'import { Header } from "@/modules/aoa/marketing/components/organisms/Header";',
+      false,
+    ],
   ] as const) {
     const [result] = await lint.lintText(code, { filePath: file });
     expect(
@@ -85,24 +168,19 @@ it("enforces vendor imports, reexports and layer direction", async () => {
 });
 it("contains no local component dependency cycles", () => {
   const root = process.cwd();
-  const files = fs
-    .readdirSync(path.join(root, "components"), { recursive: true })
-    .map(String)
-    .filter((f) => f.endsWith(".tsx"))
-    .map((f) => path.resolve(root, "components", f));
+  const files = ["shared", "modules"].flatMap((directory) =>
+    fs
+      .readdirSync(path.join(root, directory), { recursive: true })
+      .map(String)
+      .filter((file) => file.endsWith(".tsx"))
+      .map((file) => path.resolve(root, directory, file)),
+  );
   const graph = new Map(
     files.map((file) => [
       file,
       [...fs.readFileSync(file, "utf8").matchAll(/from\s+['"]([^'"]+)['"]/g)]
         .map((m) => m[1])
-        .filter((p) => p.startsWith("@/") || p.startsWith("."))
-        .map(
-          (p) =>
-            path.resolve(
-              p.startsWith("@/") ? root : path.dirname(file),
-              p.startsWith("@/") ? p.slice(2) : p,
-            ) + ".tsx",
-        )
+        .map((source) => resolveLocalImport(source, file) + ".tsx")
         .filter((p) => files.includes(p)),
     ]),
   );

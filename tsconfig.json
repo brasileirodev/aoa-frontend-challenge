@@ -19,6 +19,13 @@
       }
     ],
     "paths": {
+      "@app/*": ["./app/*"],
+      "@modules/*": ["./modules/*"],
+      "@shared/*": ["./shared/*"],
+      "@aoa/*": ["./modules/aoa/*"],
+      "@pokemon/*": ["./modules/pokemon/*"],
+      "@components/*": ["./shared/components/*"],
+      "@design-system/*": ["./shared/design-system/*"],
       "@/*": ["./*"]
     }
   },

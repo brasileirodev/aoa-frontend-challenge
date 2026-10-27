@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
-import { DesignSystemProvider } from "@/design-system/Provider";
+import "@app/globals.css";
+import { DesignSystemProvider } from "@design-system/Provider";
 
 const inter = Inter({
   variable: "--font-inter",

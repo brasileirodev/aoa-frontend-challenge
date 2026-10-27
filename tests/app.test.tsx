@@ -7,7 +7,7 @@ vi.mock("next/font/google", () => ({
 
 describe("app shell", () => {
   it("renders the root layout with design system providers", async () => {
-    const { default: RootLayout, metadata } = await import("@/app/layout");
+    const { default: RootLayout, metadata } = await import("@app/layout");
 
     render(
       <RootLayout>

@@ -10,7 +10,7 @@ Para os requisitos da etapa, consulte a [US-08](../../../scrum/user-stories/us-0
 
 1. Compare a pendência registrada com o código atual; o documento é um ponto de retomada, não evidência suficiente de conclusão.
 2. Se o aluno terminou uma etapa, aplique o fluxo de [revisão](../pokemon-review/SKILL.md) antes de escolher outra.
-3. Escolha o próximo item incompleto do roadmap. Explique finalidade, camada e contrato; consulte documentação conforme o perfil.
+3. Escolha o próximo item incompleto do roadmap. Antes de sugerir a implementação, consulte o MCP Context7 sobre os recursos da etapa e as versões utilizadas, conforme o perfil. Explique finalidade, camada, contrato, ligação com o fluxo completo e onde o código será usado. Justifique novos arquivos antes de apresentar código. Cite a fonte e informe limitações ou uso de documentação oficial como fallback.
 4. Forneça uma unidade pequena de implementação manual e o resultado esperado. Não escreva os arquivos da aplicação.
 5. Registre o ponto de parada sem marcar código apenas sugerido como implementado.
 

@@ -1,6 +1,6 @@
-import { detectCardBrandFromLibrary } from "@/lib/card-brand-detector";
-import { CARD_BRAND_CACHE_TTL_MS } from "@/lib/constants/payment";
-import type { CardFeedback } from "@/lib/payment";
+import { detectCardBrandFromLibrary } from "@aoa/checkout/server/card-brand-detector";
+import { CARD_BRAND_CACHE_TTL_MS } from "@aoa/checkout/models/payment-constants";
+import type { CardFeedback } from "@aoa/checkout/models/payment";
 
 type CachedCardBrand = {
   brand: CardFeedback["brand"];

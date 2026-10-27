@@ -1,5 +1,5 @@
-import { createPixPayment } from "@/lib/payment-store";
-import { getRequestOrigin } from "@/lib/request-origin";
+import { createPixPayment } from "@aoa/checkout/server/payment-store";
+import { getRequestOrigin } from "@shared/server/request-origin";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

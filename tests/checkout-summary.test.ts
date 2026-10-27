@@ -5,8 +5,8 @@ import {
   getDefaultSelectedPlanId,
   getPaymentSummaryLabel,
   getPlanBillingSummary,
-} from "@/lib/checkout-summary";
-import type { Plan } from "@/lib/api/plans";
+} from "@aoa/checkout/models/checkout-summary";
+import type { Plan } from "@aoa/checkout/models/plans";
 
 const plans: Plan[] = [
   {

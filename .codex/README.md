@@ -17,6 +17,8 @@ Pedido sugerido para iniciar outra conversa:
 
 ## Organização
 
+- `docs/arquitetura.md`: módulos independentes do portfólio, camadas, regras de dependência e novos caminhos após a reorganização.
+
 - `agents/pokemon-tutor.md`: contrato de atuação do tutor e revisor, em Markdown; não é configuração de um subagente executável.
 - `skills/pokemon-study/SKILL.md`: fluxo de retomada e ensino.
 - `skills/pokemon-review/SKILL.md`: revisão incremental e final.

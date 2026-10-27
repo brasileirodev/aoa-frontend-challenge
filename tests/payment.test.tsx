@@ -1,21 +1,21 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import PixPaymentPage from "@/app/pix-payment/[paymentId]/page";
-import { POST as processPayment } from "@/app/api/payments/route";
-import { GET as getCardBrandRoute } from "@/app/api/payments/card-brand/route";
-import { POST as createPix } from "@/app/api/payments/pix/route";
-import { GET as getPix } from "@/app/api/payments/pix/[paymentId]/route";
-import { POST as payPix } from "@/app/api/payments/pix/[paymentId]/pay/route";
-import { FakePixPaymentScreen } from "@/components/organisms/FakePixPaymentScreen";
-import { PaymentStep } from "@/components/organisms/PaymentStep";
-import { getCardBrand } from "@/lib/api/card-brand";
+import PixPaymentPage from "@app/pix-payment/[paymentId]/page";
+import { POST as processPayment } from "@app/api/payments/route";
+import { GET as getCardBrandRoute } from "@app/api/payments/card-brand/route";
+import { POST as createPix } from "@app/api/payments/pix/route";
+import { GET as getPix } from "@app/api/payments/pix/[paymentId]/route";
+import { POST as payPix } from "@app/api/payments/pix/[paymentId]/pay/route";
+import { FakePixPaymentScreen } from "@aoa/checkout/components/organisms/FakePixPaymentScreen";
+import { PaymentStep } from "@aoa/checkout/components/organisms/PaymentStep";
+import { getCardBrand } from "@aoa/checkout/api/card-brand";
 import {
   confirmPixPayment,
   createPixPaymentRequest,
   getPixPaymentStatus,
   processCardPayment,
-} from "@/lib/api/payments";
+} from "@aoa/checkout/api/payments";
 import {
   detectCardBrand,
   detectIssuingBank,
@@ -28,17 +28,17 @@ import {
   isValidCardNumber,
   onlyDigits,
   type CardPaymentInput,
-} from "@/lib/payment";
+} from "@aoa/checkout/models/payment";
 import {
   createPixPayment as createStoredPixPayment,
   getPixPayment,
   markPixPaymentPaid,
   resetPixPaymentStore,
-} from "@/lib/payment-store";
-import { createQrCodeDataUrl } from "@/lib/qr-code";
-import { getRequestOrigin } from "@/lib/request-origin";
-import { useCheckoutStore } from "@/lib/stores/checkout-store";
-import { CARD_BRAND_CACHE_TTL_MS } from "@/lib/constants/payment";
+} from "@aoa/checkout/server/payment-store";
+import { createQrCodeDataUrl } from "@shared/services/qr-code";
+import { getRequestOrigin } from "@shared/server/request-origin";
+import { useCheckoutStore } from "@aoa/checkout/state/checkout-store";
+import { CARD_BRAND_CACHE_TTL_MS } from "@aoa/checkout/models/payment-constants";
 
 const validCard: CardPaymentInput = {
   method: "card",

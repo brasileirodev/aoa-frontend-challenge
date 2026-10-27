@@ -1,5 +1,5 @@
-import { FakePixPaymentScreen } from "@/components/organisms/FakePixPaymentScreen";
-import { getPixPayment } from "@/lib/payment-store";
+import { FakePixPaymentScreen } from "@aoa/checkout/components/organisms/FakePixPaymentScreen";
+import { getPixPayment } from "@aoa/checkout/server/payment-store";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

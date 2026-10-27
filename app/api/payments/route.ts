@@ -1,4 +1,4 @@
-import { cardPaymentSchema } from "@/lib/payment";
+import { cardPaymentSchema } from "@aoa/checkout/models/payment";
 
 export async function POST(request: Request) {
   const result = cardPaymentSchema.safeParse(await request.json());

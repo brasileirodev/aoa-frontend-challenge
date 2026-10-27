@@ -1,11 +1,12 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { RegistrationForm } from "@/components/organisms/RegistrationForm";
-import { ReviewStep } from "@/components/organisms/ReviewStep";
-import { getPlans, type Plan } from "@/lib/api/plans";
-import { registrationSchema } from "@/lib/registration-schema";
-import { useCheckoutStore } from "@/lib/stores/checkout-store";
+import { RegistrationForm } from "@aoa/checkout/components/organisms/RegistrationForm";
+import { ReviewStep } from "@aoa/checkout/components/organisms/ReviewStep";
+import { getPlans } from "@aoa/checkout/services/plans";
+import { type Plan } from "@aoa/checkout/models/plans";
+import { registrationSchema } from "@aoa/checkout/models/registration-schema";
+import { useCheckoutStore } from "@aoa/checkout/state/checkout-store";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -131,11 +132,11 @@ describe("registration contract", () => {
     const root = process.cwd();
     for (const file of [
       "app/register/page.tsx",
-      "components/organisms/RegistrationForm.tsx",
-      "components/organisms/PlanSelection.tsx",
+      "modules/aoa/checkout/components/organisms/RegistrationForm.tsx",
+      "modules/aoa/checkout/components/organisms/PlanSelection.tsx",
     ]) {
-      expect(fs.readFileSync(path.join(root, file), "utf8")).not.toContain(
-        "@/lib/mocks",
+      expect(fs.readFileSync(path.join(root, file), "utf8")).not.toMatch(
+        /(?:@aoa\/checkout|@modules\/aoa\/checkout|@\/modules\/aoa\/checkout)\/data/,
       );
     }
   });

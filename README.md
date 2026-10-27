@@ -55,15 +55,23 @@ npm test               # run Vitest with coverage
 ## Project Structure
 
 ```text
-app/             Next.js App Router pages and API routes
-components/      Atomic UI components and feature components
-design-system/   Material UI provider and shared design tokens
-lib/             API clients, schemas, helpers, constants, stores and mocks
-scrum/           User stories and prompt history used during planning
-tests/           Vitest test suites
+app/                    Next.js routes, page composition and HTTP handlers
+modules/aoa/checkout/   AOA registration, plans, payment and checkout
+modules/aoa/marketing/  AOA home page, header, footer and site composition
+modules/pokemon/        Independent Pokédex portfolio project
+shared/components/      Reusable Atomic Design UI, without project rules
+shared/design-system/   Material UI provider and shared design tokens
+shared/utils/           Generic helpers
+shared/services/        Generic technical services
+shared/server/          Shared server utilities
+scrum/                  User stories and planning history
+tests/                  Vitest behavior and architecture tests
+tooling/                ESLint architecture boundaries
 ```
 
 ## Architectural Decisions
+
+See [the architecture guide](./.codex/docs/arquitetura.md) for ownership, dependency rules, the migration map and the next Pokémon exercise location.
 
 ### Next.js App Router
 
@@ -82,7 +90,7 @@ Material UI is used through local components instead of being imported directly 
 
 ### Styling
 
-Tailwind CSS handles layout, spacing and responsive utilities. Material UI provides accessible interactive primitives through local wrappers. Shared design tokens live in `design-system/tokens.css` and are reused by Tailwind and MUI theme configuration.
+Tailwind CSS handles layout, spacing and responsive utilities. Material UI provides accessible interactive primitives through local wrappers. Shared design tokens live in `shared/design-system/tokens.css` and are reused by Tailwind and MUI theme configuration.
 
 ### Forms And Validation
 

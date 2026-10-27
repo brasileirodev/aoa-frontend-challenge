@@ -1,17 +1,22 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
+import { importAliases } from "./tooling/import-paths.mjs";
 export default defineConfig({
-  resolve: { alias: { "@": fileURLToPath(new URL(".", import.meta.url)) } },
+  resolve: { alias: importAliases },
   test: {
+    alias: {
+      "server-only": fileURLToPath(
+        new URL("./tests/support/server-only.ts", import.meta.url),
+      ),
+    },
     environment: "jsdom",
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/**/*.test.{ts,tsx}"],
     coverage: {
       include: [
         "app/**/*.{ts,tsx}",
-        "components/**/*.{ts,tsx}",
-        "design-system/**/*.{ts,tsx}",
-        "lib/**/*.ts",
+        "modules/**/*.{ts,tsx}",
+        "shared/**/*.{ts,tsx}",
         "tooling/**/*.mjs",
       ],
       exclude: ["app/**/*.d.ts"],
